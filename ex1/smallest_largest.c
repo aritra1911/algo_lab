@@ -1,11 +1,12 @@
 /*
- * Write a program to store numbers into an array of n integers and then find out the smallest and largest number stored
- * in it. n is the user input.
+ * Write a program to store numbers into an array of n integers and then find
+ * out the smallest and largest number stored in it. n is the user input.
  */
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(void) {
+int main(void)
+{
     int* arr;
     int n, largest, smallest;
 

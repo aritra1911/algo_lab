@@ -5,8 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(void) {
-    int *arr;
+int main(void)
+{
+    int* arr;
     int n, k=0, key;
 
     printf("Enter n: ");

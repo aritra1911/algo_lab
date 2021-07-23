@@ -3,10 +3,12 @@
  * must contain some duplicates. Find out the most repeating element in the
  * array.
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(void) {
+int main(void)
+{
     int *arr, *arr1, *arr2;
     int n, k=0;  /* `k` keeps count of # of elements in `arr1` */
     int most_repeating_idx;

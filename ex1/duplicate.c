@@ -6,7 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(void) {
+int main(void)
+{
     int *arr, *arr1;
     int n, k=0;  /* `k` keeps count of # of elements in `arr1` */
     int dups=0;  /* keeps count of # of duplicate entries encountered */
