@@ -19,30 +19,31 @@ int main(void)
     printf("Enter n: ");
     scanf("%d", &n);
 
-    arr = malloc( (n-1) * sizeof *arr );
+    arr = malloc( (n - 1) * sizeof *arr );
 
     for (int i = 0; i < (n - 1); i++) {
         printf("arr[%d] = ", i);
         scanf("%d", &arr[i]);
     }
 
-    /* TODO: XOR? */
-    for (int i = 1; i <= n ; i++) {
-        int flag = 0;
-        for (int j = 0; j < (n - 1); j++) {
-            if (arr[j] == i) {
-                flag = 1;
-                break;
-            }
-        }
+    /* Compute XOR of integers from 1 to n */
+    int xor_acc;
+    switch ( n & 3 ) {  /* `n & 3` is same as `n % 4` */
+        case 1:  xor_acc = 1;     break;
+        case 2:  xor_acc = n + 2; break;
+        case 3:  xor_acc = 0;     break;
+        default: xor_acc = n;
+    }
 
-        if (!flag) {
-            printf("Missing Element : %d\n", i);
-            break;
-        }
+    /* Compute XOR of integers in the array */
+    int xor_arr = 0;
+    for (int i = 0; i < (n - 1); i++) {
+        xor_arr ^= arr[i];
     }
 
     free(arr);
+
+    printf("Missing Element : %d\n", xor_arr ^ xor_acc);
 
     return EXIT_SUCCESS;
 }
