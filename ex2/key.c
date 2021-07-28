@@ -25,9 +25,9 @@ int main(void)
     scanf("%d", &key);
 
     int flag = 0, i, j, k;
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
-            for (k = 0; k < n; k++) {
+    for (i = 0; i < n - 2; i++) {
+        for (j = i + 1; j < n - 1; j++) {
+            for (k = j + 1; k < n; k++) {
                 if ( arr[i] + arr[j] + arr[k] == key ) {
                     flag = 1;
                     goto done;
@@ -38,9 +38,10 @@ int main(void)
 
 done:
     if (flag) {
-        printf("i = %d, j = %d, k = %d\n", i, j, k);
+        printf("\ni = %d, j = %d, k = %d\n", i, j, k);
     } else {
-        printf("No values of i, j, k satisfied A[i] + A[j] + A[k] == key\n");
+        printf("\nNo unique values of i, j, k satisfied\n"
+               "    A[i] + A[j] + A[k] == key\n");
     }
 
     free(arr);
