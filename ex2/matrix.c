@@ -7,25 +7,31 @@
  *  iv. Find the product of the diagonal elements.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 int main(void)
 {
     int **mat;
+    int n;
 
     printf("Enter n: ");
     scanf("%d", &n);
 
-    mat = (int**) malloc(n * sizeof *mat);
+    /* allocate memory for matrix */
+    mat = (int **) malloc(n * sizeof *mat);
     for (int i = 0; i < n; i++) {
         mat[i] = malloc(n * sizeof **mat);
     }
 
+    /* input matrix */
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             scanf("%d", &mat[i][j]);
         }
     }
 
-    /* Non-zero elements */
+    /* count non-zero elements */
     int nz = 0;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
@@ -34,10 +40,35 @@ int main(void)
             }
         }
     }
+    printf("\n# of non-zero elements : %d\n", nz);
 
+    /* calculate sum of the elements above the leading diagonal */
+    int sum = 0;
     for (int i = 0; i < n; i++) {
-        free(mat[i]);
+        for (int j = i + 1; j < n; j++) {
+            sum += mat[i][j];
+        }
     }
+    printf("sum of the elements above the leading diagonal : %d\n", sum);
+
+    /* print elements below the minor diagonal */
+    printf("Elements below the minor diagonal : ");
+    for (int i = 0; i < n; i++) {
+        for (int j = n - i; j < n; j++) {
+            printf("%d ", mat[i][j]);
+        }
+    }
+
+    /* calculate the product of the diagonal elements */
+    int product = 1;
+    for (int i = 0; i < n; i++) {
+        product *= (n-i-1 != i) ? mat[i][i] * mat[i][n-i-1]
+                                : mat[i][i];
+    }
+    printf("\nproduct of the diagonal elements : %d\n", product);
+
+    /* Free memory allocated for matrix */
+    for (int i = 0; i < n; i++) free(mat[i]);
     free(mat);
 
     return EXIT_SUCCESS;

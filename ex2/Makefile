@@ -2,8 +2,7 @@ CFLAGS=-Wall -Wextra -pedantic -g -O0 -std=c99
 #CPPFLAGS=
 #LDFLAGS=
 
-SRCS=smallest_largest.c duplicate.c repeating.c even_odd.c rotate.c \
-	 swap_pair.c product.c
+SRCS=key.c matrix.c missing.c union_intersection.c
 
 OBJS=$(SRCS:.c=.o)
 BINS=$(SRCS:.c=)
