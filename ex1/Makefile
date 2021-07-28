@@ -12,8 +12,29 @@ BINS=$(SRCS:.c=)
 
 all: $(BINS)
 
-$(BINS): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $@.o
+# a one-liner to generate the following nightmare
+# ls -1 *.c | sed 's/\.c//g' | awk '{ print $1 ": " $1 ".o\n\t$(CC) $(LDFLAGS) -o $@ $^\n" }'
+
+duplicate: duplicate.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+even_odd: even_odd.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+product: product.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+repeating: repeating.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+rotate: rotate.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+smallest_largest: smallest_largest.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+swap_pair: swap_pair.o
+	$(CC) $(LDFLAGS) -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
