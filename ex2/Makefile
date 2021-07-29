@@ -2,7 +2,7 @@ CFLAGS=-Wall -Wextra -pedantic -g -O0 -std=c99
 #CPPFLAGS=
 #LDFLAGS=
 
-SRCS=missing.c key.c union_intersection.c matrix.c
+SRCS=missing.c key.c union_intersection.c matrix.c largest_difference.c
 
 OBJS=$(SRCS:.c=.o)
 BINS=$(SRCS:.c=)
@@ -15,6 +15,9 @@ all: $(BINS)
 # ls -1 *.c | sed 's/\.c//g' | awk '{ print $1 ": " $1 ".o\n\t$(CC) $(LDFLAGS) -o $@ $^\n" }'
 
 key: key.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+largest_difference: largest_difference.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 matrix: matrix.o
