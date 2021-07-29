@@ -2,7 +2,7 @@ CFLAGS=-Wall -Wextra -pedantic -g -O0 -std=c99
 #CPPFLAGS=
 #LDFLAGS=
 
-SRCS=missing.c key.c union_intersection.c matrix.c largest_difference.c
+SRCS=missing.c key.c union_intersection.c matrix.c largest_difference.c nge.c
 
 OBJS=$(SRCS:.c=.o)
 BINS=$(SRCS:.c=)
@@ -24,6 +24,9 @@ matrix: matrix.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 missing: missing.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+nge: nge.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 union_intersection: union_intersection.o

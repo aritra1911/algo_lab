@@ -27,7 +27,7 @@ int main(void)
 
     arr = malloc( n * sizeof *arr );
 
-    printf("Enter elements of A in ascending order:\n");
+    printf("Enter elements of A:\n");
     for (int i = 0; i < n; i++) {
         scanf("%d", &arr[i]);
     }
