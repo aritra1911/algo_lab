@@ -3,6 +3,8 @@
  * and A[j] (A[j]- A[i]) of the array of integers A in O(n) time such that j>i.
  *
  * For example: Let A is an array of integers:
+ * int A[ ] = { 10, 3, 6, 8, 9, 4, 3 }
+ *
  * Sample Test Case:
  * if i=1, j=3, then diff = a[j] – a[i] = 8 – 3 = 5
  * if i=4, j=6, then diff = a[j] – a[i] = 3 – 9 = -6

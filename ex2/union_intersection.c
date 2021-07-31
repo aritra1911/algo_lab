@@ -23,12 +23,12 @@ int main(void)
     union_arr = malloc( (m + n) * sizeof *union_arr );
     intersection_arr = malloc(MIN(m, n) * sizeof *intersection_arr);
 
-    printf("Enter elements of first array (in sorted order):\n");
+    printf("Enter elements of first array :\n");
     for (int i = 0; i < m; i++) {
         scanf("%d", &arr1[i]);
     }
 
-    printf("Enter elements of second array (in sorted order):\n");
+    printf("Enter elements of second array :\n");
     for (int i = 0; i < n; i++) {
         scanf("%d", &arr2[i]);
     }
@@ -72,7 +72,8 @@ int main(void)
 
     free(union_arr);
 
-    printf("Intersection : { %d", intersection_arr[0]);
+    printf("Intersection : {");
+    if (l) printf(" %d", intersection_arr[0]);
     for (i = 1; i < l; i++) {
         printf(", %d", intersection_arr[i]);
     }
