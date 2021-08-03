@@ -29,61 +29,68 @@
 
 #define MIN(x, y, z) ((x < y) ? x : ((y < z) ? y : z))
 
-struct step_counters {
-    int algo1, algo2, algo3;
+struct Algorithm {
+    /* Shall contain the computed result after execution */
+    int input, res, step_counter;
+
+    /* function pointer pointing to algorithm function to execute */
+    int (*compute)(int, int *);
 };
 
 int algo1(int, int *);
 int algo2(int, int *);
 int algo3(int, int *);
+void reset_counter(struct Algorithm *);
+void compute_algo(struct Algorithm *);
 
-void reset_counters(struct step_counters *counters) {
-    counters->algo1 = 0;
-    counters->algo2 = 0;
-    counters->algo3 = 0;
+void reset_counter(struct Algorithm *algo) {
+    algo->step_counter = 0;
+}
+
+void compute_algo(struct Algorithm *algo) {
+    algo->res = algo->compute(algo->input, &(algo->step_counter));
 }
 
 int algo1(int num, int *counter) {
     int n = num - 1;
 
-    *counter++;
+    (*counter)++;
     while ( n > 1 && (num % n) ) {
-        *counter++;
+        (*counter)++;
         n--;
     }
 
-    *counter++;
+    (*counter)++;
     return (n == 1) ? 1 : 0;
 }
 
 int algo2(int num, int *counter) {
     int n = num / 2;
 
-    *counter++;
+    (*counter)++;
     while ( n > 1 && (num % n) ) {
-        *counter++;
+        (*counter)++;
         n--;
     }
 
-    *counter++;
+    (*counter)++;
     return (n == 1) ? 1 : 0;
 }
 
 int algo3(int num, int *counter) {
+    (*counter)++;
 
     if ( num < 2 ) {
-        *counter++;
         return 0;
     }
 
     if ( num == 2 ) {
-        *counter++;
         return 1;
     }
 
     int flag = 0;
     for (int i = 2; i <= num / 2; i++) {
-        *counter++;
+        (*counter)++;
 
         if ( num % i == 0 ) {
             flag = 1;
@@ -96,7 +103,7 @@ int algo3(int num, int *counter) {
 
 int main(void) {
     int nums[10];
-    struct step_counters counters;
+    struct Algorithm algos[3];
 
     printf("Enter 10 numbers:\n");
 
@@ -106,14 +113,45 @@ int main(void) {
 
     putchar('\n');
 
-    reset_counters(&counters);
+    /* initialize function pointers */
+    algos[0].compute = algo1;
+    algos[1].compute = algo2;
+    algos[2].compute = algo3;
+
+    /* print header */
+    printf("Sl.   Input               Steps Taken By                   Result "
+           "  Fastest\nNo.           Algorithm-1   Algorithm-2   Algorithm-3\n"
+           "------------------------------------------------------------------"
+           "---------\n");
+
+    /* Loop through all inputs */
     for (int i = 0; i < 10; i++) {
 
-        printf("%02d   %8d   %16s   %16s   %16s\n",
-               i + 1,  nums[i],
-               algo1(nums[i], &counters.algo1) ? "is prime" : "not prime",
-               algo2(nums[i], &counters.algo2) ? "is prime" : "not prime",
-               algo3(nums[i], &counters.algo3) ? "is prime" : "not prime"
+        /* reset all step counters */
+        for (int j = 0; j < 3; j++) {
+            reset_counter(&algos[j]);
+        }
+
+        /* each time, compute results from all three algorithms */
+        for (int j = 0; j < 3; j++) {
+            algos[j].input = nums[i];
+            compute_algo(&algos[j]);
+        }
+
+        /* check if their results agree with each other. */
+        int res = algos[0].res;
+        for (int j = 1; j < 3; j++) {
+            if (algos[j].res != res) {
+                fprintf(stderr, "Result of Algorithm-%d did not match the "
+                                "result of Algorithm-1\n", j + 1);
+                return EXIT_FAILURE;
+            }
+        }
+
+        printf("%3d   %5d   %11d   %11d   %11d   %9s\n",
+               i + 1,  nums[i], algos[0].step_counter,
+               algos[1].step_counter, algos[2].step_counter,
+               res ? "is prime" : "not prime"
         );
     }
 
