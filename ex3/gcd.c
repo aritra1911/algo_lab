@@ -41,8 +41,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define MIN(x, y) ( x < y ? x : y )
+#include <math.h>
 
 struct Algorithm
 {
@@ -55,19 +54,43 @@ struct Algorithm
     int (*gcd)(int, int, int *);
 };
 
+int get_primes(int, int **, int *);
 int euclid(int, int, int *);
 int cic(int, int, int *);
+int msp(int, int, int *);
 void reset_counter(struct Algorithm *);
 void compute_algo(struct Algorithm *);
 
-void reset_counter(struct Algorithm *algo)
+int get_primes(int n, int **primes, int *counter)
 {
-    algo->step_counter = 0;
-}
+    /* Sieve of Eratosthenes */
 
-void compute_algo(struct Algorithm *algo)
-{
-    algo->res = algo->gcd(algo->x, algo->y, &(algo->step_counter));
+    char *a = calloc(n - 1, sizeof *a);
+    *primes = malloc((n - 1) * sizeof *primes);
+
+    (*counter)++;
+
+    int limit = sqrt(n);
+    for (int i = 2; i <= limit; i++) {
+        (*counter)++;
+        if ( !a[i - 2] ) {
+            for (int j = i * i; j <= n; j += i) {
+                (*counter)++;
+                a[j - 2] = 1;
+            }
+        }
+    }
+
+    int p = 0;
+    for (int i = 0; i < (n - 1); i++) {
+        (*counter)++;
+        if ( !a[i] ) {
+            (*primes)[p++] = i + 2;
+        }
+    }
+
+    free(a);
+    return p;
 }
 
 int euclid(int x, int y, int *counter)
@@ -89,6 +112,22 @@ int cic(int x, int y, int *counter)
     }
 
     return t;
+}
+
+int msp(int x, int y, int *counter)
+{
+    /* Middle school procedure algorithm */
+    return 0;
+}
+
+void reset_counter(struct Algorithm *algo)
+{
+    algo->step_counter = 0;
+}
+
+void compute_algo(struct Algorithm *algo)
+{
+    algo->res = algo->gcd(algo->x, algo->y, &(algo->step_counter));
 }
 
 int main(void)
@@ -113,6 +152,12 @@ int main(void)
         printf("%d ", cic(pair[i][0], pair[i][1], &counts));
         printf("%d\n", counts);
     }
+
+    printf("\nSieve of Eratosthenes\n");
+    int *primes = NULL;
+    int counter = 0;
+    int n = get_primes(29, &primes, &counter);
+    free(primes);
 
     return EXIT_SUCCESS;
 }

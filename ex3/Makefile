@@ -1,6 +1,6 @@
 CFLAGS=-Wall -Wextra -pedantic -g -O0 -std=c99
 #CPPFLAGS=
-#LDFLAGS=
+LDFLAGS=-lm
 
 SRCS=prime.c gcd.c
 
