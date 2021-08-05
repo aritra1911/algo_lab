@@ -43,6 +43,8 @@
 #include <string.h>
 #include <math.h>
 
+#define MIN(x, y) ( (x < y) ? x : y )
+
 struct Algorithm
 {
     /* Shall contain the computed result after execution */
@@ -117,6 +119,64 @@ int cic(int x, int y, int *counter)
 int msp(int x, int y, int *counter)
 {
     /* Middle school procedure algorithm */
+    (*counter)++;
+
+    int n = x > y ? x : y;
+    int *primes_list;
+
+    /* Get primes uptil `n` */
+    int list_size = get_primes(n, &primes_list, counter);
+
+    /* Populate exponent arrays which carries information about the prime
+     * factors of `x` & `y`. */
+    int *x_factors = calloc(list_size, sizeof *x_factors);
+    for (int i = 0; x > 1; i++) {
+        (*counter)++;
+        while ( x % primes_list[i] == 0 && x > 1 ) {
+            (*counter)++;
+            x_factors[i]++;
+            x /= primes_list[i];
+        }
+    }
+
+    int *y_factors = calloc(list_size, sizeof *y_factors);
+    for (int i = 0; y > 1; i++) {
+        (*counter)++;
+        while ( y % primes_list[i] == 0 && y > 1 ) {
+            (*counter)++;
+            y_factors[i]++;
+            y /= primes_list[i];
+        }
+    }
+
+    /* Now just get the minumum of each pair of element after zipping
+     * `x_factors` & `y_factors` together. Those will be the common factors. */
+    int *common_factors = malloc(list_size * sizeof *y_factors);
+    for (int i = 0; i < list_size; i++) {
+        (*counter)++;
+        common_factors[i] = MIN(x_factors[i], y_factors[i]);
+    }
+
+    free(x_factors);
+    free(y_factors);
+
+    /* Go through the `primes_list` and raise each element to the power of
+     * `common_factors` at that index and take the product of them all. That's
+     * the GCD. */
+    int gcd = 1;
+    for (int i = 0; i < list_size; i++) {
+        (*counter)++;
+        while ( common_factors[i]-- ) {
+            (*counter)++;
+            gcd *= primes_list[i];
+        }
+    }
+
+    free(common_factors);
+    free(primes_list);
+
+    return gcd;
+
     return 0;
 }
 
@@ -153,11 +213,12 @@ int main(void)
         printf("%d\n", counts);
     }
 
-    printf("\nSieve of Eratosthenes\n");
-    int *primes = NULL;
-    int counter = 0;
-    int n = get_primes(29, &primes, &counter);
-    free(primes);
+    printf("\nMiddle school procedure algorithm\n");
+    for (int i = 0; i < 6; i++) {
+        int counts = 0;
+        printf("%d ", msp(pair[i][0], pair[i][1], &counts));
+        printf("%d\n", counts);
+    }
 
     return EXIT_SUCCESS;
 }

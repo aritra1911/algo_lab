@@ -28,8 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MIN(x, y, z) ((x < y) ? x : ((y < z) ? y : z))
-
 struct Algorithm {
     /* Shall contain the computed result after execution */
 
