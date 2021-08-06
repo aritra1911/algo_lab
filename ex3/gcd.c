@@ -121,63 +121,41 @@ int msp(int x, int y, int *counter)
     /* Middle school procedure algorithm */
     (*counter)++;
 
-    int n = x > y ? x : y;
+    int n = x < y ? x : y;
     int *primes_list;
 
     /* Get primes uptil `n` */
-    int list_size = get_primes(n, &primes_list, counter);
+    int list_size = get_primes(sqrt(n), &primes_list, counter);
 
-    /* Populate exponent arrays which carries information about the prime
-     * factors of `x` & `y`. */
-    int *x_factors = calloc(list_size, sizeof *x_factors);
-    for (int i = 0; x > 1; i++) {
-        (*counter)++;
-        while ( x % primes_list[i] == 0 && x > 1 ) {
-            (*counter)++;
-            x_factors[i]++;
-            x /= primes_list[i];
-        }
-    }
-
-    int *y_factors = calloc(list_size, sizeof *y_factors);
-    for (int i = 0; y > 1; i++) {
-        (*counter)++;
-        while ( y % primes_list[i] == 0 && y > 1 ) {
-            (*counter)++;
-            y_factors[i]++;
-            y /= primes_list[i];
-        }
-    }
-
-    /* Now just get the minumum of each pair of element after zipping
-     * `x_factors` & `y_factors` together. Those will be the common factors. */
-    int *common_factors = malloc(list_size * sizeof *y_factors);
-    for (int i = 0; i < list_size; i++) {
-        (*counter)++;
-        common_factors[i] = MIN(x_factors[i], y_factors[i]);
-    }
-
-    free(x_factors);
-    free(y_factors);
-
-    /* Go through the `primes_list` and raise each element to the power of
-     * `common_factors` at that index and take the product of them all. That's
-     * the GCD. */
+    int *prime = primes_list;
     int gcd = 1;
-    for (int i = 0; i < list_size; i++) {
+    while ( x > 1 && y > 1 ) {
+        int x_div=0, y_div=0;
+
         (*counter)++;
-        while ( common_factors[i]-- ) {
-            (*counter)++;
-            gcd *= primes_list[i];
+
+        if ( x % (*prime) == 0 ) {
+            x /= *prime;
+            x_div = 1;
+        }
+
+        if ( y % (*prime) == 0 ) {
+            y /= *prime;
+            y_div = 1;
+        }
+
+        if ( x_div && y_div ) {
+            /* That's a common factor */
+            gcd *= *prime;
+        } else if ( !(x_div || y_div) ) {
+            /* Try the next prime */
+            prime++;
         }
     }
 
-    free(common_factors);
     free(primes_list);
 
     return gcd;
-
-    return 0;
 }
 
 void reset_counter(struct Algorithm *algo)
