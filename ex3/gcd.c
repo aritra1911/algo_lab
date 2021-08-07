@@ -43,8 +43,6 @@
 #include <string.h>
 #include <math.h>
 
-#define MIN(x, y) ( (x < y) ? x : y )
-
 struct Algorithm
 {
     /* Shall contain the computed result after execution */
@@ -66,6 +64,12 @@ void compute_algo(struct Algorithm *);
 int get_primes(int n, int **primes, int *counter)
 {
     /* Sieve of Eratosthenes */
+
+    /* Pseudocode :
+     * https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes#Pseudocode
+     *
+     * Time Complexity : O(n log log n)  [according to Wikipedia]
+     */
 
     char *a = calloc(n - 1, sizeof *a);
     *primes = malloc((n - 1) * sizeof *primes);

@@ -1,0 +1,46 @@
+Results from primary implementation of MSP algorithm
+
+Enter 6 pairs of numbers:
+31415 14142
+56 32566
+34218 56
+12 15
+31415 31415
+12 12
+
+Sl.   Input                              GCD algorithm                   Remarks
+No.   GCD(x, y)           Euclid's    Consecutive        Middle school
+                          algorithm   integer checking   procedure
+                                      algorithm.         algorithm
+----------------------------------------------------------------------------------------------------------------------------------
+1     GCD(31415, 14142)          11              14142           95915   GCD=1    ; Fastest=Euclid's algorithm
+2     GCD(56, 32566)              7                 55           99274   GCD=2    ; Fastest=Euclid's algorithm
+3     GCD(34218, 56)              3                 55          104578   GCD=2    ; Fastest=Euclid's algorithm
+4     GCD(12, 15)                 4                 10              50   GCD=3    ; Fastest=Euclid's algorithm
+5     GCD(31415, 31415)           2                  1           95595   GCD=31415; Fastest=Consecutive integer checking algorithm
+6     GCD(12, 12)                 2                  1              45   GCD=12   ; Fastest=Consecutive integer checking algorithm
+
+
+
+
+After trying to optimize it:
+
+Enter 6 pairs of numbers:
+31415 14142
+56 32566
+34218 56
+12 15
+31415 31415
+12 12
+
+Sl.   Input                              GCD algorithm                   Remarks
+No.   GCD(x, y)           Euclid's    Consecutive        Middle school
+                          algorithm   integer checking   procedure
+                                      algorithm.         algorithm
+----------------------------------------------------------------------------------------------------------------------------------
+1     GCD(31415, 14142)          11              14142             283   GCD=1    ; Fastest=Euclid's algorithm
+2     GCD(56, 32566)              7                 55              18   GCD=2    ; Fastest=Euclid's algorithm
+3     GCD(34218, 56)              3                 55              20   GCD=2    ; Fastest=Euclid's algorithm
+4     GCD(12, 15)                 4                 10               8   GCD=3    ; Fastest=Euclid's algorithm
+5     GCD(31415, 31415)           2                  1             420   GCD=31415; Fastest=Consecutive integer checking algorithm
+6     GCD(12, 12)                 2                  1               8   GCD=12   ; Fastest=Consecutive integer checking algorithm
