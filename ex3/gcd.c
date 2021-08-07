@@ -172,8 +172,6 @@ void compute_algo(struct Algorithm *algo)
     algo->res = algo->gcd(algo->x, algo->y, &(algo->step_counter));
 }
 
-/* We plan to use the below, however I'm not touching it until I've tested and
- * verified all three algorithms */
 int main(void) {
     int nums[6][2];
     struct Algorithm algos[3];
