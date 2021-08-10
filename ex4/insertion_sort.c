@@ -36,6 +36,7 @@ int main(void)
 {
     int *arr = NULL;
     int n=0, flags=0;
+    clock_t start, end;
 
     printf("INSERTION SORT MENU\n"
            "0. Quit\n\n"
@@ -120,9 +121,13 @@ int main(void)
                 }
 
                 flags &= ~SORTED_ASC;
+
+                /* Note that despite its name, `qsort()` may or may not be a
+                 * quicksort implementation. See:
+                 * http://calmerthanyouare.org/2013/05/31/qsort-shootout.html */
                 qsort(arr, n, sizeof *arr, compare_desc);
                 printf("Array sorted in descending order"
-                       " (using Quick Sort).\n");
+                       " (using `qsort()`).\n");
                 flags |= SORTED_DESC;
 
                 break;
@@ -144,19 +149,75 @@ int main(void)
                     break;
                 }
 
-                {
-                    clock_t start, end;
+                start = clock();
+                insertion_sort(arr, n);
+                end = clock();
 
-                    start = clock();
-                    insertion_sort(arr, n);
-                    end = clock();
+                flags |= SORTED_ASC;
 
-                    flags |= SORTED_ASC;
+                printf("Array sorted in ascending order.\n"
+                       "Time taken : %lf seconds\n",
+                       ((double) (end - start)) / CLOCKS_PER_SEC);
 
-                    printf("Array sorted in ascending order.\n"
-                           "Time taken : %lf seconds\n",
-                           ((double) (end - start)) / CLOCKS_PER_SEC);
+                break;
+
+            case '6':
+                getchar();  /* eat trailing newline */
+                if ( !(flags & POPULATED) ) {
+                    printf("Array not populated yet.\n");
+                    break;
                 }
+
+                if ( !(flags & SORTED_ASC) && !(flags & SORTED_DESC) ) {
+                    printf("Array isn't sorted in any order yet. "
+                           "Sort it in ascending order first.\n");
+                    break;
+                }
+
+                if ( flags & SORTED_DESC ) {
+                    printf("Array is sorted in descending order. "
+                           "Sort it in ascending order first.\n");
+                    break;
+                }
+
+                start = clock();
+                insertion_sort(arr, n);
+                end = clock();
+
+                printf("Array already sorted in ascending order, "
+                       "sorted again in ascending order.\n"
+                       "Time taken : %lf seconds\n",
+                       ((double) (end - start)) / CLOCKS_PER_SEC);
+
+                break;
+
+            case '7':
+                getchar();  /* eat trailing newline */
+                if ( !(flags & POPULATED) ) {
+                    printf("Array not populated yet.\n");
+                    break;
+                }
+
+                if ( !(flags & SORTED_ASC) && !(flags & SORTED_DESC) ) {
+                    printf("Array isn't sorted in any order yet. "
+                           "Sort it in descending order first.\n");
+                    break;
+                }
+
+                if ( flags & SORTED_ASC ) {
+                    printf("Array is sorted in ascending order. "
+                           "Sort it in descending order first.\n");
+                    break;
+                }
+
+                start = clock();
+                insertion_sort(arr, n);
+                end = clock();
+
+                printf("Array already sorted in descending order, "
+                       "sorted again but in ascending order.\n"
+                       "Time taken : %lf seconds\n",
+                       ((double) (end - start)) / CLOCKS_PER_SEC);
 
                 break;
 
