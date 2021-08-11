@@ -221,6 +221,52 @@ int main(void)
 
                 break;
 
+            case '8':
+                getchar();  /* eat trailing newline */
+
+                {
+                    double rand_time, asc_time, desc_time;
+
+                    for (int n = 5000; n <= 50000; n += 5000) {
+                        /* Initialize RNG seed */
+                        srand((unsigned) time(NULL));
+
+                        int *arr = malloc(n * sizeof *arr);
+
+                        /* Generate `n` random numbers */
+                        for (int i = 0; i < n; i++) {
+                            arr[i] = rand();
+                        }
+
+                        /* Time sorting in ascending */
+                        start = clock();
+                        insertion_sort(arr, n);
+                        end = clock();
+                        rand_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+                        /* Time sorting in ascending again */
+                        start = clock();
+                        insertion_sort(arr, n);
+                        end = clock();
+                        asc_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+                        /* Sort that in descending */
+                        qsort(arr, n, sizeof *arr, compare_desc);
+
+                        /* Sort the descending back in ascending */
+                        start = clock();
+                        insertion_sort(arr, n);
+                        end = clock();
+                        desc_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+                        printf("n=%d   %lf   %lf   %lf\n",
+                               n, asc_time, desc_time, rand_time);
+
+                        free(arr);
+                    }
+
+                } break;
+
             case EOF: printf("0\n");
             default: goto _exit;
         }
