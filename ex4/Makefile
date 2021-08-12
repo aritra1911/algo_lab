@@ -2,10 +2,10 @@ CFLAGS=-Wall -Wextra -pedantic -g -O0 -std=c99
 #CPPFLAGS=
 #LDFLAGS=
 
-SRCS := insertion_sort.c
+SRCS = insertion_sort.c
 
-OBJS=$(SRCS:.c=.o)
-BINS=$(SRCS:.c=)
+OBJS = $(SRCS:.c=.o)
+BINS = $(SRCS:.c=)
 
 .PHONY: all clean
 
