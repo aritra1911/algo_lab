@@ -1,48 +1,11 @@
 /*
- * Write a menu driven program as given below, to sort an array of n integers in
- * ascending order by insertion sort algorithm and determine the time required
- * (in terms of step/frequency count) to sort the elements. Repeat the
- * experiment for different values of n and different nature of data (i.e.apply
- * insertion sort algorithm on the data of array that are already sorted,
- * reversly sorted and random data). Finally plot a graph of the time taken
- * versus n for each type of data. The elements can be read from a file or can
- * be generated using the random number generator.
+ * Rewrite the program no-4.1 (Insertion Sort) with the following details.
  *
- * INSERTION SORT MENU
- *
- * 0. Quit
- * 1. n Random numbers=>Array
- * 2. Display the Array
- * 3. Sort the Array in Ascending Order by using Insertion Sort
- *    Algorithm
- * 4. Sort the Array in Descending Order by using any sorting
- *    algorithm
- * 5. Time Complexity to sort ascending of random data
- * 6. Time Complexity to sort ascending of data already sorted in
- *    ascending order
- * 7. Time Complexity to sort ascending of data already sorted in
- *    descending order
- * 8. Time Complexity to sort ascending of data for all Cases (Data
- *    Ascending, Data in Descending & Random Data) in Tabular form
- *    for values n=5000 to 50000, step=5000
- * Enter your choice:
- * If the choice is option 8, the it will display the tabular form as follows:
- *
- *              Analysis of Insertion Sort Algorithm
- * Sl.   Value   Time Complexity   Time Complexity   Time Complexity
- * No.   of n       (Data in          (Data in        (Random Data)
- *                  Ascending)       Descending)
- * -----------------------------------------------------------------
- *   1    5000
- *   2   10000
- *   3   15000
- *   4   20000
- *   5   25000
- *   6   30000
- *   7   35000
- *   8   40000
- *   9   45000
- *  10   50000
+ *  i. Compare the best case, worst case and average case time complexity with
+ *     the same data except time complexity will count the cpu clock time.(Use
+ *     datatypes, macros and functions of <time.h> in C or "ctime" in C++)
+ * ii. Plot a graph showing the above comparison (n, the input data Vs. CPU
+ *     times for best, worst & average case)
  */
 
 #include <stdio.h>
@@ -52,6 +15,9 @@
 #define SORTED_ASC 1
 #define SORTED_DESC 2
 #define POPULATED 4
+
+void insertion_sort(int *, int);
+int compare_desc(const void *, const void *);
 
 void insertion_sort(int *arr, int len)
 {
@@ -84,7 +50,6 @@ int main(void)
     int *arr = NULL;
     int n=0, flags=0;
     clock_t start, end;
-    double rand_time, asc_time, desc_time;
 
     printf("--------------------------------------------------------------\n"
            "                     INSERTION SORT MENU\n"
@@ -263,6 +228,8 @@ int main(void)
                 start = clock();
                 insertion_sort(arr, n);
                 end = clock();
+                flags &= ~SORTED_DESC;
+                flags |= SORTED_ASC;
 
                 printf("Array already sorted in descending order, "
                        "sorted again but in ascending order.\n"
@@ -298,13 +265,13 @@ int main(void)
                     start = clock();
                     insertion_sort(arr, n);
                     end = clock();
-                    rand_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+                    double rand_time = ((double) (end - start))/CLOCKS_PER_SEC;
 
                     /* Time sorting in ascending again */
                     start = clock();
                     insertion_sort(arr, n);
                     end = clock();
-                    asc_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+                    double asc_time = ((double) (end - start))/CLOCKS_PER_SEC;
 
                     /* Sort that in descending */
                     qsort(arr, n, sizeof *arr, compare_desc);
@@ -313,7 +280,7 @@ int main(void)
                     start = clock();
                     insertion_sort(arr, n);
                     end = clock();
-                    desc_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+                    double desc_time = ((double) (end - start))/CLOCKS_PER_SEC;
 
                     printf("%3d   %5d   %15lf   %15lf   %15lf\n",
                            slno++, n, asc_time, desc_time, rand_time);
@@ -323,33 +290,12 @@ int main(void)
 
                 break;
 
-            case EOF: printf("0\n");
+            case EOF: printf("Quitting...\n");
             default: goto _exit;
         }
     }
 
 _exit:
     if ( flags & POPULATED ) free(arr);
-    return EXIT_SUCCESS;
-}
-
-/* Testing main function */
-int _main(void)
-{
-    /* For testing only */
-    int arr[] = { 5, 4, 6, 2, 9, 3 };
-    clock_t start, end;
-
-    start = clock();
-    insertion_sort( arr, 6 );
-    end = clock();
-
-    for (int i = 0; i < 6; i++) {
-        printf("%d ", arr[i]);
-    }
-
-    printf("\nTime taken : %lf seconds\n",
-           ((double) (end - start)) / CLOCKS_PER_SEC);
-
     return EXIT_SUCCESS;
 }
