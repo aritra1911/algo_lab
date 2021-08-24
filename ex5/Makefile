@@ -1,8 +1,8 @@
-CFLAGS=-Wall -Wextra -pedantic -g -O0 -std=c99
+CFLAGS = -Wall -Wextra -pedantic -g -O0 -std=c99
 #CPPFLAGS=
 #LDFLAGS=
 
-SRCS = bin_search.c
+SRCS = bin_search.c merge_sort.c
 
 OBJS = $(SRCS:.c=.o)
 BINS = $(SRCS:.c=)
@@ -15,6 +15,9 @@ all: $(BINS)
 # ls -1 *.c | sed 's/\.c//g' | awk '{ print $1 ": " $1 ".o\n\t$(CC) $(LDFLAGS) -o $@ $^\n" }'
 
 bin_search: bin_search.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+merge_sort: merge_sort.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 clean:

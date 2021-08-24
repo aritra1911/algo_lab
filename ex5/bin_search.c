@@ -31,21 +31,25 @@ int bin_search(int item, int *arr, int len)
 
 int main(int argc, char** argv)
 {
-    int item = atoi(argv[1]);
+    if ( argc > 2 ) {
 
-    int *arr = malloc((argc - 2) * sizeof *arr);
+        /* Handle a test via command line */
 
-    for (int i = 2; i < argc; i++) {
-        arr[i - 2] = atoi(argv[i]);
+        int item = atoi(argv[1]);
+        int *arr = malloc((argc - 2) * sizeof *arr);
+
+        for (int i = 2; i < argc; i++) {
+            arr[i - 2] = atoi(argv[i]);
+        }
+
+        if ( bin_search(item, arr, argc - 2) != -1 ) {
+            printf("Found!\n");
+        } else {
+            printf("Not Found!\n");
+        }
+
+        free(arr);
     }
-
-    if ( bin_search(item, arr, argc - 2) != -1 ) {
-        printf("Found!\n");
-    } else {
-        printf("Not Found!\n");
-    }
-
-    free(arr);
 
     return EXIT_SUCCESS;
 }
