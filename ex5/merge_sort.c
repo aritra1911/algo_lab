@@ -68,41 +68,35 @@ int main(int argc, char** argv)
         free(arr);
 
         putchar('\n');
+        return EXIT_SUCCESS;
     }
 
-    for (int n = 1000; n <= 50000; n += 5000) {
-        struct timespec timep;
+    printf("     n   Time taken\n"
+           "------   ----------\n");
+
+    for (int n = 100000; n <= 500000; n += 50000) {
+
+        struct timespec time_now;
 
         /* Get the current time */
-        clock_gettime(CLOCK_MONOTONIC, &timep);
+        clock_gettime(CLOCK_MONOTONIC, &time_now);
 
         /* Use current time's nanoseconds field to initialize RNG seed */
-        srand((unsigned) timep.tv_nsec);
+        srand((unsigned) time_now.tv_nsec);
 
         int *arr = malloc(n * sizeof *arr);
 
-        /* Generate `n` random numbers */
-        for (int i = 0; i < n; i++) {
+        /* Generate `n` random numbers and populate `arr` */
+        for (int i = 0; i < n; i++)
             arr[i] = rand();
-        }
-
-        printf("\nFirst 10 elements of `arr` (unsorted) : ");
-        for (int i = 0; i < 10; i++) {
-            printf("%i ", arr[i]);
-        }
 
         clock_t start = clock();
         merge_sort(arr, n);
         clock_t end = clock();
 
-        printf("\nFirst 10 elements of `arr` (sorted) : ");
-        for (int i = 0; i < 10; i++) {
-            printf("%i ", arr[i]);
-        }
-
         free(arr);
 
-        printf("\nTime taken : %lf seconds\n",
+        printf("%6i   %10lf\n", n,
                ((double) (end - start)) / CLOCKS_PER_SEC);
     }
 
