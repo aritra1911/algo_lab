@@ -1,5 +1,5 @@
 CFLAGS = -Wall -Wextra -pedantic -g -O0 -std=c99
-#CPPFLAGS=
+CPPFLAGS= -D_POSIX_C_SOURCE=199309L
 #LDFLAGS=
 
 SRCS = bin_search.c merge_sort.c
@@ -19,6 +19,9 @@ bin_search: bin_search.o
 
 merge_sort: merge_sort.o
 	$(CC) $(LDFLAGS) -o $@ $^
+
+%.o: %.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 clean:
 	rm -rf $(OBJS) $(BINS)

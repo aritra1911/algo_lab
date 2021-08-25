@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 void merge(int *, int, int);
 void merge_sort(int *, int);
@@ -67,6 +68,42 @@ int main(int argc, char** argv)
         free(arr);
 
         putchar('\n');
+    }
+
+    for (int n = 1000; n <= 50000; n += 5000) {
+        struct timespec timep;
+
+        /* Get the current time */
+        clock_gettime(CLOCK_MONOTONIC, &timep);
+
+        /* Use current time's nanoseconds field to initialize RNG seed */
+        srand((unsigned) timep.tv_nsec);
+
+        int *arr = malloc(n * sizeof *arr);
+
+        /* Generate `n` random numbers */
+        for (int i = 0; i < n; i++) {
+            arr[i] = rand();
+        }
+
+        printf("\nFirst 10 elements of `arr` (unsorted) : ");
+        for (int i = 0; i < 10; i++) {
+            printf("%i ", arr[i]);
+        }
+
+        clock_t start = clock();
+        merge_sort(arr, n);
+        clock_t end = clock();
+
+        printf("\nFirst 10 elements of `arr` (sorted) : ");
+        for (int i = 0; i < 10; i++) {
+            printf("%i ", arr[i]);
+        }
+
+        free(arr);
+
+        printf("\nTime taken : %lf seconds\n",
+               ((double) (end - start)) / CLOCKS_PER_SEC);
     }
 
     return EXIT_SUCCESS;
