@@ -27,7 +27,7 @@ int bin_search(int item, int *arr, int len)
         if (arr[m] < item)
             return bin_search(item, arr + m + 1, len - m - 1);
 
-        return bin_search(item, arr, len - m - 1);
+        return bin_search(item, arr, m);
     }
 
     return -1;
@@ -36,6 +36,31 @@ int bin_search(int item, int *arr, int len)
 int compare_asc(const void *p, const void *q)
 {
     return *(int *)p - *(int *) q;
+}
+
+long timediff( struct timespec start_time,
+               struct timespec end_time )
+{
+
+    struct timespec temp;
+    long s, n;
+
+    if ( ( end_time.tv_nsec - start_time.tv_nsec ) < 0 ) {
+        /* make a full second adjustment to tv_sec */
+        temp.tv_sec = end_time.tv_sec - start_time.tv_sec - 1;
+        /* we have to add a full second to temp.tv_nsec */
+        temp.tv_nsec = 1000000000
+                     + end_time.tv_nsec - start_time.tv_nsec;
+
+    } else {
+
+        temp.tv_sec = end_time.tv_sec - start_time.tv_sec;
+        temp.tv_nsec = end_time.tv_nsec - start_time.tv_nsec;
+
+    }
+    s = (long) temp.tv_sec;
+    n = (long) temp.tv_nsec;
+    return ( s * (long)1000000000 + n );
 }
 
 int main(int argc, char** argv)
@@ -61,14 +86,15 @@ int main(int argc, char** argv)
         return EXIT_SUCCESS;
     }
 
-    printf("       n   Best Case   Worst Case   Average Case\n"
-           "--------   ---------   ----------   ------------\n");
+    printf("      n   Best Case   Worst Case   Average Case\n"
+           "-------   ---------   ----------   ------------\n");
 
-    for (int n = 100000000; n <= 500000000; n += 50000000) {
+    for (int n = 1000000; n <= 10000000; n += 1000000) {
 
         struct timespec time_now;
-        clock_t start, end;
-        double best_time, worst_time, average_time;
+        struct timespec start, end;
+        long best_time, worst_time, average_time;
+        int x;
 
         /* Get the current time */
         clock_gettime(CLOCK_MONOTONIC, &time_now);
@@ -80,19 +106,17 @@ int main(int argc, char** argv)
 
         /* Generate `n` unique random numbers and populate `arr` */
         for (int i = 0; i < n; i++) {
-            /*
-            int rand_elem = rand();
+            //int rand_elem = rand();
 
-            * Perform a linear search *
-            for (int j = 0; j < i; j++) {
-                if (arr[j] == rand_elem) {
-                    * If same element found, generate a new one *
-                    rand_elem = rand();
-                    j = -1;  * and reperform search *
-                }
-            }
-            arr[i] = rand_elem;
-            */
+            ///* Perform a linear search */
+            //for (int j = 0; j < i; j++) {
+            //    if (arr[j] == rand_elem) {
+            //        /* If same element found, generate a new one */
+            //        rand_elem = rand();
+            //        j = -1;  /* and reperform search */
+            //    }
+            //}
+            //arr[i] = rand_elem;
             arr[i] = rand();
         }
 
@@ -100,28 +124,31 @@ int main(int argc, char** argv)
         qsort(arr, n, sizeof *arr, compare_asc);
 
         /* Best case time complexity */
-        start = clock();
-        if ( bin_search(arr[(n - 1) >> 1], arr, n) ) {
+        x = arr[(n - 1) >> 1];  /* The middle element */
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        if ( bin_search(x, arr, n) ) {
             fprintf(stderr, "Best case failed to find element\n");
         }
-        end = clock();
-        best_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        best_time = timediff(start, end);
 
         /* Worst case time complexity */
-        start = clock();
-        if ( bin_search(arr[0], arr, n) ) {
+        x = arr[n-1];
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        if ( bin_search(x, arr, n) ) {
             fprintf(stderr, "Worst case failed to find element\n");
         }
-        end = clock();
-        worst_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        worst_time = timediff(start, end);
 
         /* Average case time complexity */
-        start = clock();
-        if ( bin_search(arr[rand() % n], arr, n) ) {
+        x = arr[rand() % n];
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        if ( bin_search(x, arr, n) ) {
             fprintf(stderr, "Average case failed to find element\n");
         }
-        end = clock();
-        average_time = ((double) (end - start)) / CLOCKS_PER_SEC;
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        average_time = timediff(start, end);
 
         free(arr);
 /*
@@ -129,7 +156,7 @@ int main(int argc, char** argv)
            "------   ---------   ----------   ------------\n");
 */
 
-        printf("%9i   %.15lf   %.15lf   %.15lf\n", n,
+        printf("%8i   %9li   %10li   %12li\n", n,
                best_time, worst_time, average_time);
     }
 
