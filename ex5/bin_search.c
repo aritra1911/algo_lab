@@ -62,14 +62,20 @@ int main(int argc, char** argv)
            "--------   ---------   ----------   ------------\n");
 
     for (int n = 1000000; n <= 10000000; n += 1000000) {
+
         struct timespec time_now;
         int average_counter = 0, best_counter = 0, worst_counter = 0;
         int x;
 
+        /* Get the current time */
         clock_gettime(CLOCK_MONOTONIC, &time_now);
+
+        /* Use current time's nanoseconds field to seed the RNG */
         srand((unsigned) time_now.tv_nsec);
 
         int *arr = malloc(n * sizeof *arr);
+
+        /* Generate `n` random numbers and populate `arr` */
         for (int i = 0; i < n; i++) {
             arr[i] = rand();
         }
@@ -80,6 +86,12 @@ int main(int argc, char** argv)
 
         /* Using libc's standard `qsort()` sorting function */
         qsort(arr, n, sizeof *arr, compare_asc);
+
+        /* Note: This recursive implementation of the
+         * binary search algorithm is too fast to time
+         * properly. At some point I gave up and did a
+         * step counting approach which seems to work
+         * better according to expectations. */
 
         /* Average case time complexity */
         if ( bin_search(x, arr, n, &average_counter) )
