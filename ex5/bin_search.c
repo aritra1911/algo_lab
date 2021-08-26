@@ -100,28 +100,38 @@ int main(int argc, char** argv)
         clock_gettime(CLOCK_MONOTONIC, &time_now);
 
         /* Use current time's nanoseconds field to seed the RNG */
-        srand((unsigned) time_now.tv_nsec);
+        srand((unsigned int) time_now.tv_nsec);
 
         int *arr = malloc(n * sizeof *arr);
 
         /* Generate `n` unique random numbers and populate `arr` */
         for (int i = 0; i < n; i++) {
-            //int rand_elem = rand();
-
-            ///* Perform a linear search */
-            //for (int j = 0; j < i; j++) {
-            //    if (arr[j] == rand_elem) {
-            //        /* If same element found, generate a new one */
-            //        rand_elem = rand();
-            //        j = -1;  /* and reperform search */
-            //    }
-            //}
-            //arr[i] = rand_elem;
             arr[i] = rand();
         }
 
+        /* Get the first element which shall land somewhere
+         * else after sorting */
+        x = arr[0];
+
         /* We shall use libc's standard `qsort()` sorting function */
         qsort(arr, n, sizeof *arr, compare_asc);
+
+        /* Average case time complexity */
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        if ( bin_search(x, arr, n) ) {
+            fprintf(stderr, "Average case failed to find element\n");
+        }
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        average_time = timediff(start, end);
+
+        /* Worst case time complexity */
+        x = arr[n - 1];
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        if ( bin_search(x, arr, n) ) {
+            fprintf(stderr, "Worst case failed to find element\n");
+        }
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        worst_time = timediff(start, end);
 
         /* Best case time complexity */
         x = arr[(n - 1) >> 1];  /* The middle element */
@@ -132,29 +142,7 @@ int main(int argc, char** argv)
         clock_gettime(CLOCK_MONOTONIC, &end);
         best_time = timediff(start, end);
 
-        /* Worst case time complexity */
-        x = arr[n-1];
-        clock_gettime(CLOCK_MONOTONIC, &start);
-        if ( bin_search(x, arr, n) ) {
-            fprintf(stderr, "Worst case failed to find element\n");
-        }
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        worst_time = timediff(start, end);
-
-        /* Average case time complexity */
-        x = arr[rand() % n];
-        clock_gettime(CLOCK_MONOTONIC, &start);
-        if ( bin_search(x, arr, n) ) {
-            fprintf(stderr, "Average case failed to find element\n");
-        }
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        average_time = timediff(start, end);
-
         free(arr);
-/*
-    printf("     n   Best Case   Worst Case   Average Case\n"
-           "------   ---------   ----------   ------------\n");
-*/
 
         printf("%8i   %9li   %10li   %12li\n", n,
                best_time, worst_time, average_time);
