@@ -55,6 +55,15 @@ void quick_sort(int *arr, int len)
     quick_sort(arr + pi + 1, len - pi - 1);
 }
 
+void reverse(int *arr, int len)
+{
+    for (int i = 0; i < len / 2; i++) {
+        int temp = arr[i];
+        arr[i] = arr[len - i - 1];
+        arr[len - i - 1] = temp;
+    }
+}
+
 int main(int argc, char **argv)
 {
     if ( argc > 1 ) {
@@ -77,6 +86,92 @@ int main(int argc, char **argv)
 
         putchar('\n');
         return EXIT_SUCCESS;
+    }
+
+    int data_sizes[11] = {
+        1000,     /* 1K   */
+        50000,    /* 50K  */
+        100000,   /* 1L   */
+        150000,   /* 1.5L */
+        200000,   /* 2L   */
+        250000,   /* 2.5L */
+        300000,   /* 3L   */
+        350000,   /* 3.5L */
+        400000,   /* 4L   */
+        450000,   /* 4.5L */
+        1000000,  /* 1M   */
+    };
+
+    printf("Data Size   Ordered   Reversed   Same   Random   50%% sorted\n"
+           "---------   -------   --------   ----   ------   ----------\n");
+
+    for (int i = 0; i < 11; i++) {
+        struct timespec time_now;
+        double time_ord, time_rord, time_same, time_rand, time_50;
+        clock_t start, end;
+
+        /* Get the current time */
+        clock_gettime(CLOCK_MONOTONIC, &time_now);
+
+        /* Use current time's nanoseconds
+         * field to initialize RNG seed */
+        srand((unsigned) time_now.tv_nsec);
+
+        int *arr = malloc(data_sizes[i] * sizeof *arr);
+
+        /* Generate random numbers and populate `arr` */
+        for (int j = 0; j < data_sizes[i]; j++)
+            arr[j] = rand();
+
+        /* Time sorting of random list of elements */
+        start = clock();
+        quick_sort(arr, data_sizes[i]);
+        end = clock();
+        time_rand = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+        /* Time sorting of ordered list of elements */
+        start = clock();
+        quick_sort(arr, data_sizes[i]);
+        end = clock();
+        time_ord = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+        /* Reverse the ordered list */
+        reverse(arr, data_sizes[i]);
+
+        /* Time sorting of reverse ordered list of elements */
+        start = clock();
+        quick_sort(arr, data_sizes[i]);
+        end = clock();
+        time_rord = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+        /* Randomize first half of the list */
+        clock_gettime(CLOCK_MONOTONIC, &time_now);
+        srand((unsigned) time_now.tv_nsec);
+        for (int j = 0; j < data_sizes[i] / 2; j++)
+            arr[j] = rand();
+
+        /* Time sorting when 50% of the List is sorted */
+        start = clock();
+        quick_sort(arr, data_sizes[i]);
+        end = clock();
+        time_50 = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+        /* Take the first element and fill
+         * the entire array with that */
+        for (int j = 1; j < data_sizes[i]; j++)
+            arr[j] = arr[0];
+
+        /* Time sorting a list containing the same value */
+        start = clock();
+        quick_sort(arr, data_sizes[i]);
+        end = clock();
+        time_same = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+        printf("%9i   %7f   %8f   %4f   %6f   %10f\n",
+               data_sizes[i], time_ord, time_rord,
+               time_same, time_rand, time_50);
+
+        free(arr);
     }
 
     return EXIT_SUCCESS;
