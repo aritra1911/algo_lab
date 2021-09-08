@@ -21,39 +21,38 @@
 int partition(int *arr, int len)
 {
     int ret = 0;
+
+    /* Taking the last element as pivot */
     int pivot = arr[len - 1];
 
     for (int i = 0; i < len - 1; i++) {
-        int si = i;
-        for (int j = i + 1; j < len - 1; j++) {
-            if ( arr[j] < arr[si] ) {
-                si = j;
-            }
-        }
 
-        if ( arr[si] < pivot ) {
-            int temp = arr[si];
-            arr[si] = arr[i];
-            arr[i] = temp;
+        /* Bring elements smaller than pivot
+         * to the front of the array. */
+
+        if ( arr[i] <= pivot ) {
+            int temp = arr[i];
+            arr[i] = arr[ret];
+            arr[ret] = temp;
             ret++;
-        } else {
-            break;
         }
     }
 
-    /* Place the pivot in its place */
+    /* Place the pivot at the juction of elements smaller
+     * than pivot and elements greater than pivot */
     arr[len - 1] = arr[ret];
     arr[ret] = pivot;
 
+    /* Return index of pivot */
     return ret;
 }
 
 void quick_sort(int *arr, int len)
 {
     if ( len <= 1 ) return;
-    int m = partition(arr, len);
-    quick_sort(arr, m);
-    quick_sort(arr + m + 1, len - m - 1);
+    int pi = partition(arr, len);
+    quick_sort(arr, pi);
+    quick_sort(arr + pi + 1, len - pi - 1);
 }
 
 int main(int argc, char **argv)
@@ -79,4 +78,6 @@ int main(int argc, char **argv)
         putchar('\n');
         return EXIT_SUCCESS;
     }
+
+    return EXIT_SUCCESS;
 }
