@@ -102,8 +102,8 @@ int main(int argc, char **argv)
         1000000,  /* 1M   */
     };
 
-    printf("Data Size   Ordered   Reversed   Same   Random   50%% sorted\n"
-           "---------   -------   --------   ----   ------   ----------\n");
+    printf("Data Size      Ordered     Reversed         Same     Random   50%% sorted\n"
+           "---------   ----------   ----------   ----------   --------   ----------\n");
 
     for (int i = 0; i < 11; i++) {
         struct timespec time_now;
@@ -167,11 +167,11 @@ int main(int argc, char **argv)
         end = clock();
         time_same = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-        printf("%9i   %7f   %8f   %4f   %6f   %10f\n",
+        free(arr);
+
+        printf("%9i   %10.6lf   %10.6f   %10.6f   %8.6f   %10.6f\n",
                data_sizes[i], time_ord, time_rord,
                time_same, time_rand, time_50);
-
-        free(arr);
     }
 
     return EXIT_SUCCESS;
