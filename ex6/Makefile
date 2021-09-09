@@ -1,6 +1,8 @@
+LIBS = -lpthread
+
 CFLAGS = -Wall -Wextra -pedantic -g -O0 -std=c99
 CPPFLAGS= -D_POSIX_C_SOURCE=199309L
-#LDFLAGS=
+LDFLAGS = $(LIBS)
 
 SRCS = quick_sort.c
 
