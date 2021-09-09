@@ -20,6 +20,7 @@
 #include <pthread.h>
 
 #define TEST_CASES 11
+#define MIN_REQ_SSIZE 67108864  /* 64 MB stack */
 
 typedef struct {
     int size;
@@ -186,12 +187,34 @@ int main(int argc, char **argv)
     };
 
     pthread_t threads[TEST_CASES];
+    pthread_attr_t stack_size_custom_attr;
     TestData thread_data[TEST_CASES];
+
+    pthread_attr_init(&stack_size_custom_attr);
+
+#ifdef _POSIX_THREAD_ATTR_STACKSIZE
+    size_t default_stack_size;
+
+    pthread_attr_getstacksize(&stack_size_custom_attr,
+                              &default_stack_size);
+
+    if ( default_stack_size < MIN_REQ_SSIZE ) {
+
+        printf(" WARN : Current stack size is %lu bytes,\n"
+               "      : but we need at least %lu bytes,\n"
+               "      : so we shall auto adjust that.\n",
+                        default_stack_size, (size_t) MIN_REQ_SSIZE);
+
+        pthread_attr_setstacksize(&stack_size_custom_attr,
+                                  (size_t) MIN_REQ_SSIZE);
+    }
+#endif
 
     /* Dispatch threads */
     for (int i = 0; i < TEST_CASES; i++) {
         thread_data[i].size = data_sizes[i];
-        pthread_create(&threads[i], NULL, test_case, (void *) &thread_data[i]);
+        pthread_create(&threads[i], &stack_size_custom_attr,
+                       test_case, (void *) &thread_data[i]);
         printf(" INFO : Thread #%i dispatched with data size of %i\n",
                                  i,                   data_sizes[i]);
     }
@@ -202,6 +225,7 @@ int main(int argc, char **argv)
         printf(" INFO : Thread #%i joined\n", i);
     }
 
+    pthread_attr_destroy(&stack_size_custom_attr);
     putchar('\n');
 
     printf("Data Size   Ordered       Reversed      Same          Random     50%% sorted\n"
