@@ -1,0 +1,31 @@
+Make sure you've got plenty of stack, i.e. it segfaults even at 16 MB of stack.
+
+
+Use
+
+    $ ulimit -s
+
+To check stack size in case you're running the Bourne Shell
+
+
+Use
+
+    $ ulimit -s <stack_size>
+
+To set stack to `stack_size` in kilobytes. For example:
+
+    $ ulimit -s 16777216
+
+For 16 MB of stack and then run
+
+    $ ./quick_sort
+
+
+Also if you're just experimenting, feel free to do:
+
+    $ ulimit -s unlimited
+
+
+I have plans for implementing pthreads here to set custom stack size for each
+thread and also speed up the execution of this program. If this feels too slow,
+try substituting -O0 in CFLAGS of the Makefile with -O3.
