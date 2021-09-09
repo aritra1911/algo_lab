@@ -219,10 +219,16 @@ int main(int argc, char **argv)
                                  i,                   data_sizes[i]);
     }
 
+    clock_t creation_time = clock();
+
     /* Wait for threads to join */
     for (int i = 0; i < TEST_CASES; i++) {
+        clock_t joining_time;
+
         pthread_join(threads[i], NULL);
-        printf(" INFO : Thread #%i joined\n", i);
+        joining_time = clock();
+        printf(" INFO : Thread #%i joined after %f seconds\n", i,
+               ((double) (joining_time - creation_time)) / CLOCKS_PER_SEC);
     }
 
     pthread_attr_destroy(&stack_size_custom_attr);
