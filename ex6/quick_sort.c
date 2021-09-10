@@ -30,6 +30,7 @@ typedef struct {
 int partition(int *, int);
 void quick_sort(int *, int);
 void reverse(int *, int);
+double timediff(struct timespec, struct timespec);
 void *test_case(void *);
 
 int partition(int *arr, int len)
@@ -78,10 +79,32 @@ void reverse(int *arr, int len)
     }
 }
 
+double timediff(struct timespec start, struct timespec end)
+{
+    /*
+     * Shamelessly copied from :
+     * https://git.sr.ht/~blastwave/bw/tree/bw/item/time_and_date/timediff.c
+     */
+
+    struct timespec delta;
+
+    if ( (end.tv_nsec - start.tv_nsec) < 0 ) {
+        /* make a full second adjustment to tv_sec */
+        delta.tv_sec = end.tv_sec - start.tv_sec - 1;
+        /* we have to add a full second to delta.tv_nsec */
+        delta.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+
+    } else {
+        delta.tv_sec = end.tv_sec - start.tv_sec;
+        delta.tv_nsec = end.tv_nsec - start.tv_nsec;
+    }
+
+    return delta.tv_sec + (double) delta.tv_nsec / 1000000000;
+}
+
 void *test_case(void *__data__)
 {
-    struct timespec time_now;
-    clock_t start, end;
+    struct timespec time_now, start, end;
 
     /* Cast void * into something more usable */
     TestData *data = (TestData *) __data__;
@@ -100,25 +123,25 @@ void *test_case(void *__data__)
         arr[j] = rand();
 
     /* Time sorting of random list of elements */
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
     quick_sort(arr, data->size);
-    end = clock();
-    data->time_rand = ((double) (end - start)) / CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data->time_rand = timediff(start, end);
 
     /* Time sorting of ordered list of elements */
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
     quick_sort(arr, data->size);
-    end = clock();
-    data->time_ord = ((double) (end - start)) / CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data->time_ord = timediff(start, end);
 
     /* Reverse the ordered list */
     reverse(arr, data->size);
 
     /* Time sorting of reverse ordered list of elements */
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
     quick_sort(arr, data->size);
-    end = clock();
-    data->time_rord = ((double) (end - start)) / CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data->time_rord = timediff(start, end);
 
     /* Randomize first half of the list */
     clock_gettime(CLOCK_MONOTONIC, &time_now);
@@ -127,10 +150,10 @@ void *test_case(void *__data__)
         arr[j] = rand();
 
     /* Time sorting when 50% of the List is sorted */
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
     quick_sort(arr, data->size);
-    end = clock();
-    data->time_50 = ((double) (end - start)) / CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data->time_50 = timediff(start, end);
 
     /* Take the first element and fill
      * the entire array with that */
@@ -138,10 +161,10 @@ void *test_case(void *__data__)
         arr[j] = arr[0];
 
     /* Time sorting a list containing the same value */
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
     quick_sort(arr, data->size);
-    end = clock();
-    data->time_same = ((double) (end - start)) / CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data->time_same = timediff(start, end);
 
     free(arr);
 
@@ -189,6 +212,7 @@ int main(int argc, char **argv)
     pthread_t threads[TEST_CASES];
     pthread_attr_t stack_size_custom_attr;
     TestData thread_data[TEST_CASES];
+    struct timespec creation_time, joining_time;
 
     pthread_attr_init(&stack_size_custom_attr);
 
@@ -219,16 +243,14 @@ int main(int argc, char **argv)
                                  i,                   data_sizes[i]);
     }
 
-    clock_t creation_time = clock();
+    clock_gettime(CLOCK_MONOTONIC, &creation_time);
 
     /* Wait for threads to join */
     for (int i = 0; i < TEST_CASES; i++) {
-        clock_t joining_time;
-
         pthread_join(threads[i], NULL);
-        joining_time = clock();
+        clock_gettime(CLOCK_MONOTONIC, &joining_time);
         printf(" INFO : Thread #%i joined after %f seconds\n", i,
-               ((double) (joining_time - creation_time)) / CLOCKS_PER_SEC);
+               timediff(creation_time, joining_time));
     }
 
     pthread_attr_destroy(&stack_size_custom_attr);
