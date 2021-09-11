@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <pthread.h>
+#include <assert.h>
 
 #define TEST_CASES 11
 #define MIN_REQ_SSIZE 67108864  /* 64 MB stack */
@@ -29,6 +30,7 @@ typedef struct {
 
 int partition(int *, int);
 void quick_sort(int *, int);
+int is_sorted(int *, int);
 void reverse(int *, int);
 double timediff(struct timespec, struct timespec);
 void *test_case(void *);
@@ -68,6 +70,16 @@ void quick_sort(int *arr, int len)
     int pi = partition(arr, len);
     quick_sort(arr, pi);
     quick_sort(arr + pi + 1, len - pi - 1);
+}
+
+int is_sorted(int *arr, int len)
+{
+    for (int i = 0; i < len - 1; i++) {
+        if ( arr[i] > arr[i + 1] )
+            return -1;
+    }
+
+    return 0;
 }
 
 void reverse(int *arr, int len)
@@ -114,13 +126,15 @@ void *test_case(void *__data__)
 
     /* Use current time's nanoseconds
      * field to seed the RNG */
-    srand((unsigned) time_now.tv_nsec);
+    srand48(time_now.tv_nsec);
 
     int *arr = malloc(data->size * sizeof *arr);
 
     /* Generate random numbers and populate `arr` */
     for (int j = 0; j < data->size; j++)
-        arr[j] = rand();
+        arr[j] = lrand48();
+
+    assert(is_sorted(arr, data->size) != 0);
 
     /* Time sorting of random list of elements */
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -128,14 +142,20 @@ void *test_case(void *__data__)
     clock_gettime(CLOCK_MONOTONIC, &end);
     data->time_rand = timediff(start, end);
 
+    assert(is_sorted(arr, data->size) == 0);
+
     /* Time sorting of ordered list of elements */
     clock_gettime(CLOCK_MONOTONIC, &start);
     quick_sort(arr, data->size);
     clock_gettime(CLOCK_MONOTONIC, &end);
     data->time_ord = timediff(start, end);
 
+    assert(is_sorted(arr, data->size) == 0);
+
     /* Reverse the ordered list */
     reverse(arr, data->size);
+
+    assert(is_sorted(arr, data->size) != 0);
 
     /* Time sorting of reverse ordered list of elements */
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -143,11 +163,15 @@ void *test_case(void *__data__)
     clock_gettime(CLOCK_MONOTONIC, &end);
     data->time_rord = timediff(start, end);
 
+    assert(is_sorted(arr, data->size) == 0);
+
     /* Randomize first half of the list */
     clock_gettime(CLOCK_MONOTONIC, &time_now);
-    srand((unsigned) time_now.tv_nsec);
+    srand48(time_now.tv_nsec);
     for (int j = 0; j < data->size / 2; j++)
-        arr[j] = rand();
+        arr[j] = lrand48();
+
+    assert(is_sorted(arr, data->size) != 0);
 
     /* Time sorting when 50% of the List is sorted */
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -155,16 +179,22 @@ void *test_case(void *__data__)
     clock_gettime(CLOCK_MONOTONIC, &end);
     data->time_50 = timediff(start, end);
 
+    assert(is_sorted(arr, data->size) == 0);
+
     /* Take the first element and fill
      * the entire array with that */
     for (int j = 1; j < data->size; j++)
         arr[j] = arr[0];
+
+    assert(is_sorted(arr, data->size) == 0);
 
     /* Time sorting a list containing the same value */
     clock_gettime(CLOCK_MONOTONIC, &start);
     quick_sort(arr, data->size);
     clock_gettime(CLOCK_MONOTONIC, &end);
     data->time_same = timediff(start, end);
+
+    assert(is_sorted(arr, data->size) == 0);
 
     free(arr);
 
