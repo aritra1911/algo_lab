@@ -418,3 +418,52 @@ Data Size   Ordered       Reversed      Same          Random     50% sorted
 real 3278.95
 user 3273.80
 sys 0.05
+
+
+
+A slowdown after the srand48 and assert stuff, tested on the i5 with -O3:
+
+
+probook $ /usr/bin/time -p ./quick_sort
+ WARN : Current stack size is 8388608 bytes,
+      : but we need at least 67108864 bytes,
+      : so we shall auto adjust that.
+ INFO : Thread #0 dispatched with data size of 1000
+ INFO : Thread #1 dispatched with data size of 50000
+ INFO : Thread #2 dispatched with data size of 100000
+ INFO : Thread #3 dispatched with data size of 150000
+ INFO : Thread #4 dispatched with data size of 200000
+ INFO : Thread #5 dispatched with data size of 250000
+ INFO : Thread #6 dispatched with data size of 300000
+ INFO : Thread #7 dispatched with data size of 350000
+ INFO : Thread #8 dispatched with data size of 400000
+ INFO : Thread #9 dispatched with data size of 450000
+ INFO : Thread #10 dispatched with data size of 1000000
+ INFO : Thread #0 joined after 0.000191 seconds
+ INFO : Thread #1 joined after 15.503520 seconds
+ INFO : Thread #2 joined after 73.002238 seconds
+ INFO : Thread #3 joined after 161.829306 seconds
+ INFO : Thread #4 joined after 263.273046 seconds
+ INFO : Thread #5 joined after 416.183083 seconds
+ INFO : Thread #6 joined after 501.227339 seconds
+ INFO : Thread #7 joined after 575.715406 seconds
+ INFO : Thread #8 joined after 700.470510 seconds
+ INFO : Thread #9 joined after 870.603572 seconds
+ INFO : Thread #10 joined after 2829.274436 seconds
+
+Data Size   Ordered       Reversed      Same          Random     50% sorted
+---------   -----------   -----------   -----------   --------   -----------
+     1000      0.003394      0.001301      0.001134   0.000249      0.000756
+    50000      4.599102      3.575522      4.568950   0.010089      2.747206
+   100000     18.081596     19.260871     22.036434   0.012066     13.594947
+   150000     46.541292     42.287093     44.858377   0.047924     28.049445
+   200000     84.767683     67.680358     63.864437   0.027552     46.892237
+   250000    126.201543     97.541946    117.213359   0.034667     75.144981
+   300000    175.532094    119.161429     96.867370   0.042614    109.582702
+   350000    235.630010    109.541700    154.539443   0.069694     75.877479
+   400000    308.651188    151.538062    142.221116   0.053866     97.953160
+   450000    389.207045    215.386569    156.403307   0.112481    109.424472
+  1000000   1031.983752    593.572757    740.458749   0.276368    462.897517
+real 2829.28
+user 6297.27
+sys 0.58
