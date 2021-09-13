@@ -13,7 +13,7 @@
  *
  *     Let B thinks up the number 35
  *
- *     A’s guess   B’s response
+ *     A's guess   B's response
  *     ---------   ------------
  *     10          Try a bigger number
  *     20          Try a bigger number
@@ -81,26 +81,27 @@ extern int main(void)
     /* Use current time's nanoseconds field to seed RNG */
     srand48(time_now.tv_nsec);
 
-    printf(" * B thinks of a number\n");
-    int b_number = mrand48();
-
+    int b_number = mrand48();  /* B thinks of an arbitrary number */
     int a_guess = 0;
     int feedback = 0;
 
-    while ( (a_guess = guess(feedback)) != b_number ) {
-        printf("<A> %i\n", a_guess);
+    printf("  A's guess   B's response\n"
+           "-----------   --------------------\n");
 
-        feedback = b_number - a_guess;
+    while ( (a_guess = guess(feedback)) != b_number ) {
+        printf("%+11i   ", a_guess);
+
+        feedback = b_number > a_guess ? +1 : -1;
 
         if ( feedback > 0 ) {
-            printf("<B> Try a bigger number\n");
+            printf("Try a bigger number\n");
         } else {
-            printf("<B> Try a smaller number\n");
+            printf("Try a smaller number\n");
         }
     }
 
-    printf("<A> %i\n", a_guess);
-    printf("<B> You got it\n");
+    printf("%+11i   ", a_guess);
+    printf("You got it\n");
 
     return EXIT_SUCCESS;
 }
