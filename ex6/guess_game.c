@@ -51,7 +51,6 @@ static int guess(int cost)
         current_guess = mrand48();
         lower_bound = INT_MIN;
         upper_bound = INT_MAX;
-
         return current_guess;
     }
 
@@ -89,7 +88,8 @@ extern int main(void)
            "-----------   --------------------\n");
 
     while ( (a_guess = guess(feedback)) != b_number ) {
-        printf("%+11i   ", a_guess);
+
+        printf("%11i   ", a_guess);
 
         feedback = b_number > a_guess ? +1 : -1;
 
@@ -100,7 +100,7 @@ extern int main(void)
         }
     }
 
-    printf("%+11i   ", a_guess);
+    printf("%11i   ", a_guess);
     printf("You got it\n");
 
     return EXIT_SUCCESS;
