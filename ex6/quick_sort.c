@@ -20,8 +20,10 @@
 #include <pthread.h>
 #include <assert.h>
 
-#define TEST_CASES 11
-#define MIN_REQ_SSIZE 67108864  /* 64 MB stack */
+#define TEST_CASES       11
+#define SIXTYFOURM       67108864
+#define MIN_REQ_SSIZE    SIXTYFOURM  /* 64 MB stack */
+#define NANOSECS         1000000000
 
 typedef struct {
     int size;
@@ -104,14 +106,14 @@ double timediff(struct timespec start, struct timespec end)
         /* make a full second adjustment to tv_sec */
         delta.tv_sec = end.tv_sec - start.tv_sec - 1;
         /* we have to add a full second to delta.tv_nsec */
-        delta.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+        delta.tv_nsec = NANOSECS + end.tv_nsec - start.tv_nsec;
 
     } else {
         delta.tv_sec = end.tv_sec - start.tv_sec;
         delta.tv_nsec = end.tv_nsec - start.tv_nsec;
     }
 
-    return delta.tv_sec + (double) delta.tv_nsec / 1000000000;
+    return delta.tv_sec + (double) delta.tv_nsec / NANOSECS;
 }
 
 void *test_case(void *__data__)
