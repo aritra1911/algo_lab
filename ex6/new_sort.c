@@ -40,8 +40,8 @@ static void new_sort(int *arr, int len)
         return;
     }
 
-    int two_thirds = 2*(len + 1) / 3;
-    int one_third = len - two_thirds;
+    int one_third = len / 3;
+    int two_thirds = len - one_third;
 
     new_sort(arr, two_thirds);
     new_sort(arr + one_third, len - one_third);
