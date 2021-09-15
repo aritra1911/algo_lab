@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
+#include <unistd.h>
 
 static int guess(int cost)
 {
@@ -66,23 +67,34 @@ static int guess(int cost)
     return current_guess;
 }
 
-extern int main(void)
+extern int main(int argc, char **argv)
 {
     struct timespec time_now;
 
     /* Attempt to get the current time */
     if ( clock_gettime(CLOCK_REALTIME, &time_now) != 0 ) {
-        fprintf(stderr,"ERROR : could not attain CLOCK_REALTIME\n"
-                       "      : clock_gettime: %s\n", strerror(errno));
-        return EXIT_FAILURE;
+        fprintf(stderr," WARN : could not attain CLOCK_REALTIME\n"
+                       "      : clock_gettime: %s\n"
+                       "      : We shall use the PID as seed for RNG\n",
+                       strerror(errno));
+
+        /* Use current process' process id (PID) to seed RNG */
+        srand48((long) getpid());
+
+    } else {
+        /* Use current time's nanoseconds field to seed RNG */
+        srand48(time_now.tv_nsec);
     }
 
-    /* Use current time's nanoseconds field to seed RNG */
-    srand48(time_now.tv_nsec);
+    int b_number, a_guess, feedback=0;
 
-    int b_number = mrand48();  /* B thinks of an arbitrary number */
-    int a_guess = 0;
-    int feedback = 0;
+    if ( argc > 1 ) {
+        /* Let the user control the mind of B */
+        b_number = atoi(argv[1]);
+    } else {
+        /* Let B think of an arbitrary number */
+        b_number = mrand48();
+    }
 
     printf("  A's guess   B's response\n"
            "-----------   --------------------\n");
