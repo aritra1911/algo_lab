@@ -2,7 +2,7 @@ CFLAGS = -Wall -Wextra -pedantic -g -O0 -std=c99
 CPPFLAGS = -D_XOPEN_SOURCE -D_POSIX_C_SOURCE=199309L
 #LDFLAGS=
 
-SRCS = quick_sort.c guess_game.c new_sort.c
+SRCS = quick_sort.c guess_game.c social.c new_sort.c
 
 OBJS = $(SRCS:.c=.o)
 BINS = $(SRCS:.c=)
@@ -24,6 +24,9 @@ new_sort: new_sort.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 quick_sort: quick_sort.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+social: social.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 clean:
