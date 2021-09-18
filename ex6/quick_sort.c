@@ -17,6 +17,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
+#include <assert.h>
+
+#define TEST_CASES       11
+#define SIXTYFOURM       67108864
+#define MIN_REQ_SSIZE    SIXTYFOURM  /* 64 MB stack */
+#define NANOSECS         1000000000
+
+typedef struct {
+    int size;
+    double time_ord, time_rord, time_same, time_rand, time_50;
+} TestData;
+
+int partition(int *, int);
+void quick_sort(int *, int);
+int is_sorted(int *, int);
+void reverse(int *, int);
+double timediff(struct timespec, struct timespec);
+void *test_case(void *);
 
 int partition(int *arr, int len)
 {
@@ -55,6 +74,16 @@ void quick_sort(int *arr, int len)
     quick_sort(arr + pi + 1, len - pi - 1);
 }
 
+int is_sorted(int *arr, int len)
+{
+    for (int i = 0; i < len - 1; i++) {
+        if ( arr[i] > arr[i + 1] )
+            return -1;
+    }
+
+    return 0;
+}
+
 void reverse(int *arr, int len)
 {
     for (int i = 0; i < len / 2; i++) {
@@ -62,6 +91,116 @@ void reverse(int *arr, int len)
         arr[i] = arr[len - i - 1];
         arr[len - i - 1] = temp;
     }
+}
+
+double timediff(struct timespec start, struct timespec end)
+{
+    /*
+     * Shamelessly copied from :
+     * https://git.sr.ht/~blastwave/bw/tree/bw/item/time_and_date/timediff.c
+     */
+
+    struct timespec delta;
+
+    if ( (end.tv_nsec - start.tv_nsec) < 0 ) {
+        /* make a full second adjustment to tv_sec */
+        delta.tv_sec = end.tv_sec - start.tv_sec - 1;
+        /* we have to add a full second to delta.tv_nsec */
+        delta.tv_nsec = NANOSECS + end.tv_nsec - start.tv_nsec;
+
+    } else {
+        delta.tv_sec = end.tv_sec - start.tv_sec;
+        delta.tv_nsec = end.tv_nsec - start.tv_nsec;
+    }
+
+    return delta.tv_sec + (double) delta.tv_nsec / NANOSECS;
+}
+
+void *test_case(void *__data__)
+{
+    struct timespec time_now, start, end;
+
+    /* Cast void * into something more usable */
+    TestData *data = (TestData *) __data__;
+
+    /* Get the current time */
+    clock_gettime(CLOCK_MONOTONIC, &time_now);
+
+    /* Use current time's nanoseconds
+     * field to seed the RNG */
+    srand48(time_now.tv_nsec);
+
+    int *arr = malloc(data->size * sizeof *arr);
+
+    /* Generate random numbers and populate `arr` */
+    for (int j = 0; j < data->size; j++)
+        arr[j] = lrand48();
+
+    assert(is_sorted(arr, data->size) != 0);
+
+    /* Time sorting of random list of elements */
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    quick_sort(arr, data->size);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data->time_rand = timediff(start, end);
+
+    assert(is_sorted(arr, data->size) == 0);
+
+    /* Time sorting of ordered list of elements */
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    quick_sort(arr, data->size);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data->time_ord = timediff(start, end);
+
+    assert(is_sorted(arr, data->size) == 0);
+
+    /* Reverse the ordered list */
+    reverse(arr, data->size);
+
+    assert(is_sorted(arr, data->size) != 0);
+
+    /* Time sorting of reverse ordered list of elements */
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    quick_sort(arr, data->size);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data->time_rord = timediff(start, end);
+
+    assert(is_sorted(arr, data->size) == 0);
+
+    /* Randomize first half of the list */
+    clock_gettime(CLOCK_MONOTONIC, &time_now);
+    srand48(time_now.tv_nsec);
+    for (int j = 0; j < data->size / 2; j++)
+        arr[j] = lrand48();
+
+    assert(is_sorted(arr, data->size) != 0);
+
+    /* Time sorting when 50% of the List is sorted */
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    quick_sort(arr, data->size);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data->time_50 = timediff(start, end);
+
+    assert(is_sorted(arr, data->size) == 0);
+
+    /* Take the first element and fill
+     * the entire array with that */
+    for (int j = 1; j < data->size; j++)
+        arr[j] = arr[0];
+
+    assert(is_sorted(arr, data->size) == 0);
+
+    /* Time sorting a list containing the same value */
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    quick_sort(arr, data->size);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data->time_same = timediff(start, end);
+
+    assert(is_sorted(arr, data->size) == 0);
+
+    free(arr);
+
+    return NULL;
 }
 
 int main(int argc, char **argv)
@@ -88,7 +227,7 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
     }
 
-    int data_sizes[11] = {
+    int data_sizes[] = {
         1000,     /* 1K   */
         50000,    /* 50K  */
         100000,   /* 1L   */
@@ -102,76 +241,61 @@ int main(int argc, char **argv)
         1000000,  /* 1M   */
     };
 
+    pthread_t threads[TEST_CASES];
+    pthread_attr_t stack_size_custom_attr;
+    TestData thread_data[TEST_CASES];
+    struct timespec creation_time, joining_time;
+
+    pthread_attr_init(&stack_size_custom_attr);
+
+#ifdef _POSIX_THREAD_ATTR_STACKSIZE
+    size_t default_stack_size;
+
+    pthread_attr_getstacksize(&stack_size_custom_attr,
+                              &default_stack_size);
+
+    if ( default_stack_size < MIN_REQ_SSIZE ) {
+
+        printf(" WARN : Current stack size is %lu bytes,\n"
+               "      : but we need at least %lu bytes,\n"
+               "      : so we shall auto adjust that.\n",
+                        default_stack_size, (size_t) MIN_REQ_SSIZE);
+
+        pthread_attr_setstacksize(&stack_size_custom_attr,
+                                  (size_t) MIN_REQ_SSIZE);
+    }
+#endif
+
+    /* Dispatch threads */
+    for (int i = 0; i < TEST_CASES; i++) {
+        thread_data[i].size = data_sizes[i];
+        pthread_create(&threads[i], &stack_size_custom_attr,
+                       test_case, (void *) &thread_data[i]);
+        printf(" INFO : Thread #%i dispatched with data size of %i\n",
+                                 i,                   data_sizes[i]);
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &creation_time);
+
+    /* Wait for threads to join */
+    for (int i = 0; i < TEST_CASES; i++) {
+        pthread_join(threads[i], NULL);
+        clock_gettime(CLOCK_MONOTONIC, &joining_time);
+        printf(" INFO : Thread #%i joined after %f seconds\n", i,
+               timediff(creation_time, joining_time));
+    }
+
+    pthread_attr_destroy(&stack_size_custom_attr);
+    putchar('\n');
+
     printf("Data Size   Ordered       Reversed      Same          Random     50%% sorted\n"
            "---------   -----------   -----------   -----------   --------   -----------\n");
 
-    for (int i = 0; i < 11; i++) {
-        struct timespec time_now;
-        double time_ord, time_rord, time_same, time_rand, time_50;
-        clock_t start, end;
-
-        /* Get the current time */
-        clock_gettime(CLOCK_MONOTONIC, &time_now);
-
-        /* Use current time's nanoseconds
-         * field to initialize RNG seed */
-        srand((unsigned) time_now.tv_nsec);
-
-        int *arr = malloc(data_sizes[i] * sizeof *arr);
-
-        /* Generate random numbers and populate `arr` */
-        for (int j = 0; j < data_sizes[i]; j++)
-            arr[j] = rand();
-
-        /* Time sorting of random list of elements */
-        start = clock();
-        quick_sort(arr, data_sizes[i]);
-        end = clock();
-        time_rand = ((double) (end - start)) / CLOCKS_PER_SEC;
-
-        /* Time sorting of ordered list of elements */
-        start = clock();
-        quick_sort(arr, data_sizes[i]);
-        end = clock();
-        time_ord = ((double) (end - start)) / CLOCKS_PER_SEC;
-
-        /* Reverse the ordered list */
-        reverse(arr, data_sizes[i]);
-
-        /* Time sorting of reverse ordered list of elements */
-        start = clock();
-        quick_sort(arr, data_sizes[i]);
-        end = clock();
-        time_rord = ((double) (end - start)) / CLOCKS_PER_SEC;
-
-        /* Randomize first half of the list */
-        clock_gettime(CLOCK_MONOTONIC, &time_now);
-        srand((unsigned) time_now.tv_nsec);
-        for (int j = 0; j < data_sizes[i] / 2; j++)
-            arr[j] = rand();
-
-        /* Time sorting when 50% of the List is sorted */
-        start = clock();
-        quick_sort(arr, data_sizes[i]);
-        end = clock();
-        time_50 = ((double) (end - start)) / CLOCKS_PER_SEC;
-
-        /* Take the first element and fill
-         * the entire array with that */
-        for (int j = 1; j < data_sizes[i]; j++)
-            arr[j] = arr[0];
-
-        /* Time sorting a list containing the same value */
-        start = clock();
-        quick_sort(arr, data_sizes[i]);
-        end = clock();
-        time_same = ((double) (end - start)) / CLOCKS_PER_SEC;
-
-        free(arr);
-
+    for (int i = 0; i < TEST_CASES; i++) {
         printf("%9i   %11.6lf   %11.6f   %11.6f   %8.6f   %11.6f\n",
-               data_sizes[i], time_ord, time_rord,
-               time_same, time_rand, time_50);
+               thread_data[i].size,      thread_data[i].time_ord,
+               thread_data[i].time_rord, thread_data[i].time_same,
+               thread_data[i].time_rand, thread_data[i].time_50);
     }
 
     return EXIT_SUCCESS;

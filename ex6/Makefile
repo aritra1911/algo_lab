@@ -1,6 +1,11 @@
-CFLAGS = -Wall -Wextra -pedantic -g -O0 -std=c99
-CPPFLAGS = -D_XOPEN_SOURCE -D_POSIX_C_SOURCE=199309L
-#LDFLAGS=
+LIBS_QS = -lpthread
+
+CFLAGS = -Wall -Wextra -pedantic -g -O3 -std=c99
+
+CPPFLAGS = -D_XOPEN_SOURCE -D_POSIX_C_SOURCE=199309L \
+           -D_POSIX_THREAD_ATTR_STACKSIZE
+
+LDFLAGS_QS = $(LDFLAGS) $(LIBS_QS)
 
 SRCS = quick_sort.c guess_game.c social.c new_sort.c
 
@@ -24,7 +29,7 @@ new_sort: new_sort.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 quick_sort: quick_sort.o
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $(LDFLAGS_QS) -o $@ $^
 
 social: social.o
 	$(CC) $(LDFLAGS) -o $@ $^

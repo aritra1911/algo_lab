@@ -14,7 +14,7 @@ Use
 
 To set stack to `stack_size` in kilobytes. For example:
 
-    $ ulimit -s 16777216
+    $ ulimit -s 16384
 
 For 16 MB of stack and then run
 
@@ -29,3 +29,441 @@ Also if you're just experimenting, feel free to do:
 I have plans for implementing pthreads here to set custom stack size for each
 thread and also speed up the execution of this program. If this feels too slow,
 try substituting -O0 in CFLAGS of the Makefile with -O3.
+
+It was found out by repeated experimentation that it works fine with 64 MB of
+stack. This is the lower bound that we assume while proceeding forawrds. This
+limit can be set by doing:
+
+    $ ulimit -s 65536
+
+
+A look at multithreaded performance on an Intel Core i5 8th Gen processor:
+
+
+probook $ lscpu
+Architecture:            x86_64
+  CPU op-mode(s):        32-bit, 64-bit
+  Address sizes:         39 bits physical, 48 bits virtual
+  Byte Order:            Little Endian
+CPU(s):                  8
+  On-line CPU(s) list:   0-7
+Vendor ID:               GenuineIntel
+  Model name:            Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz
+    CPU family:          6
+    Model:               142
+    Thread(s) per core:  2
+    Core(s) per socket:  4
+    Socket(s):           1
+    Stepping:            10
+    CPU max MHz:         3400.0000
+    CPU min MHz:         400.0000
+    BogoMIPS:            3601.00
+    Flags:               fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology no
+                         nstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch
+                          cpuid_fault epb invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xge
+                         tbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+Virtualization features:
+  Virtualization:        VT-x
+Caches (sum of all):
+  L1d:                   128 KiB (4 instances)
+  L1i:                   128 KiB (4 instances)
+  L2:                    1 MiB (4 instances)
+  L3:                    6 MiB (1 instance)
+NUMA:
+  NUMA node(s):          1
+  NUMA node0 CPU(s):     0-7
+Vulnerabilities:
+  Itlb multihit:         KVM: Mitigation: VMX disabled
+  L1tf:                  Mitigation; PTE Inversion; VMX conditional cache flushes, SMT vulnerable
+  Mds:                   Mitigation; Clear CPU buffers; SMT vulnerable
+  Meltdown:              Mitigation; PTI
+  Spec store bypass:     Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+  Spectre v1:            Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+  Spectre v2:            Mitigation; Full generic retpoline, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling
+  Srbds:                 Mitigation; Microcode
+  Tsx async abort:       Not affected
+
+
+With -O0:
+
+
+probook $ /usr/bin/time -p ./quick_sort
+ WARN : Current stack size is 8388608 bytes,
+      : but we need at least 67108864 bytes,
+      : so we shall auto adjust that.
+ INFO : Thread #0 dispatched with data size of 1000
+ INFO : Thread #1 dispatched with data size of 50000
+ INFO : Thread #2 dispatched with data size of 100000
+ INFO : Thread #3 dispatched with data size of 150000
+ INFO : Thread #4 dispatched with data size of 200000
+ INFO : Thread #5 dispatched with data size of 250000
+ INFO : Thread #6 dispatched with data size of 300000
+ INFO : Thread #7 dispatched with data size of 350000
+ INFO : Thread #8 dispatched with data size of 400000
+ INFO : Thread #9 dispatched with data size of 450000
+ INFO : Thread #10 dispatched with data size of 1000000
+ INFO : Thread #0 joined after 0.019474 seconds
+ INFO : Thread #1 joined after 46.091774 seconds
+ INFO : Thread #2 joined after 175.404264 seconds
+ INFO : Thread #3 joined after 383.413593 seconds
+ INFO : Thread #4 joined after 648.164579 seconds
+ INFO : Thread #5 joined after 898.990730 seconds
+ INFO : Thread #6 joined after 1116.172263 seconds
+ INFO : Thread #7 joined after 1492.131994 seconds
+ INFO : Thread #8 joined after 1694.227664 seconds
+ INFO : Thread #9 joined after 2127.483547 seconds
+ INFO : Thread #10 joined after 6858.825130 seconds
+
+Data Size   Ordered       Reversed      Same          Random     50% sorted
+---------   -----------   -----------   -----------   --------   -----------
+     1000      0.007760      0.004456      0.004068   0.000241      0.002895
+    50000     12.593869      8.731729     16.427209   0.010629      8.249813
+   100000     50.402748     38.025872     52.309127   0.021381     34.507555
+   150000    123.996428     82.619376    108.296552   0.031482     68.279539
+   200000    212.282541    139.103005    182.898192   0.049139    113.602278
+   250000    324.426661    202.359000    204.266788   0.064771    167.611024
+   300000    450.015920    242.949068    215.063658   0.070779    207.799589
+   350000    587.646422    326.835517    297.816148   0.082746    279.381673
+   400000    748.734377    319.055017    387.707758   0.127523    238.174299
+   450000    917.981607    476.785729    423.752173   0.182839    308.368191
+  1000000   2623.721843   1438.740150   1719.896375   0.245631   1075.780600
+real 6858.82
+user 15081.61
+sys 6.82
+
+
+With -O3:
+
+
+probook $ /usr/bin/time -p ./quick_sort
+ WARN : Current stack size is 8388608 bytes,
+      : but we need at least 67108864 bytes,
+      : so we shall auto adjust that.
+ INFO : Thread #0 dispatched with data size of 1000
+ INFO : Thread #1 dispatched with data size of 50000
+ INFO : Thread #2 dispatched with data size of 100000
+ INFO : Thread #3 dispatched with data size of 150000
+ INFO : Thread #4 dispatched with data size of 200000
+ INFO : Thread #5 dispatched with data size of 250000
+ INFO : Thread #6 dispatched with data size of 300000
+ INFO : Thread #7 dispatched with data size of 350000
+ INFO : Thread #8 dispatched with data size of 400000
+ INFO : Thread #9 dispatched with data size of 450000
+ INFO : Thread #10 dispatched with data size of 1000000
+ INFO : Thread #0 joined after 0.005324 seconds
+ INFO : Thread #1 joined after 15.083071 seconds
+ INFO : Thread #2 joined after 50.755292 seconds
+ INFO : Thread #3 joined after 103.969299 seconds
+ INFO : Thread #4 joined after 165.655261 seconds
+ INFO : Thread #5 joined after 257.253835 seconds
+ INFO : Thread #6 joined after 366.895650 seconds
+ INFO : Thread #7 joined after 442.318321 seconds
+ INFO : Thread #8 joined after 475.268626 seconds
+ INFO : Thread #9 joined after 502.439476 seconds
+ INFO : Thread #10 joined after 1654.884141 seconds
+
+Data Size   Ordered       Reversed      Same          Random     50% sorted
+---------   -----------   -----------   -----------   --------   -----------
+     1000      0.002860      0.001221      0.001177   0.000189      0.000750
+    50000      4.109732      3.881814      4.249152   0.008183      2.719497
+   100000     15.049009     12.904243     14.133091   0.017369      8.430259
+   150000     32.403253     26.788683     27.505691   0.028205     16.924161
+   200000     56.714163     45.080258     36.874117   0.038874     26.532785
+   250000     82.076599     57.645081     71.241199   0.045973     45.788944
+   300000    116.869966     89.939562     95.634283   0.056378     63.865509
+   350000    149.512357    131.903933     70.892359   0.059201     89.425815
+   400000    198.894126    114.341569     89.492108   0.118498     71.850405
+   450000    203.209779    106.988027    107.591991   0.138638     83.948126
+  1000000    615.419971    362.241401    395.525800   0.316315    280.790280
+real 1654.88
+user 3950.74
+sys 2.18
+
+
+A look at single threaded performance on the same CPU
+
+
+With -O0:
+
+
+probook $ /usr/bin/time -p ./quick_sort
+Data Size   Ordered       Reversed      Same          Random     50% sorted
+---------   -----------   -----------   -----------   --------   -----------
+     1000      0.004756      0.002071      0.002427   0.000357      0.001522
+    50000      4.352915      3.553300      4.278966   0.009032      2.675123
+   100000     17.150680     14.205075     17.136900   0.013286     10.718553
+   150000     38.611931     31.957834     38.610814   0.021274     24.160049
+   200000     68.681947     56.826448     68.999031   0.028467     42.903168
+   250000    107.647380     89.588954    107.880117   0.042710     68.117353
+   300000    155.235875    130.951645    159.172400   0.045727     97.542607
+   350000    267.444121    224.677313    284.976019   0.051722    180.533976
+   400000    361.362231    296.138402    352.534756   0.073098    227.833725
+   450000    454.436827    359.898606    451.451495   0.090816    286.796306
+  1000000   1946.222138   1497.352537   1723.520429   0.195706   1077.155381
+real 11372.48
+
+user 11350.80
+sys 3.14
+
+
+With -O3:
+
+
+probook $ /usr/bin/time -p ./quick_sort
+Data Size   Ordered       Reversed      Same          Random     50% sorted
+---------   -----------   -----------   -----------   --------   -----------
+     1000      0.001906      0.001420      0.000535   0.000187      0.000418
+    50000      1.063326      0.982565      0.991309   0.004526      0.704093
+   100000      4.328037      3.799899      3.902150   0.007236      2.806419
+   150000      8.791164      8.525842      9.049032   0.014160      6.296739
+   200000     15.625769     17.082783     16.634019   0.020017     11.539696
+   250000     24.685795     24.119379     24.556500   0.024622     18.363585
+   300000     37.395980     33.605514     34.960899   0.029206     24.821613
+   350000     48.162819     44.122460     48.044615   0.032853     33.769115
+   400000     62.197494     57.418600     62.279322   0.036013     44.244963
+   450000     78.930194     71.418168     79.363550   0.039612     55.772197
+  1000000    391.289269    370.381488    395.972874   0.085968    281.374255
+real 2462.68
+user 2459.61
+sys 0.11
+
+
+Let's look at multithreaded performance on another machine with Intel Pentium Dual Core:
+
+
+❯ lscpu
+Architecture:            x86_64
+  CPU op-mode(s):        32-bit, 64-bit
+  Address sizes:         36 bits physical, 48 bits virtual
+  Byte Order:            Little Endian
+CPU(s):                  2
+  On-line CPU(s) list:   0,1
+Vendor ID:               GenuineIntel
+  Model name:            Intel(R) Pentium(R) CPU G2010 @ 2.80GHz
+    CPU family:          6
+    Model:               58
+    Thread(s) per core:  1
+    Core(s) per socket:  2
+    Socket(s):           1
+    Stepping:            9
+    CPU max MHz:         2800.0000
+    CPU min MHz:         1600.0000
+    BogoMIPS:            5589.35
+    Flags:               fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2
+                          ss ht tm pbe syscall nx rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc
+                         cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr pdcm pcid sse4_1 sse4_2 p
+                         opcnt tsc_deadline_timer xsave lahf_lm cpuid_fault epb pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriori
+                         ty ept vpid fsgsbase smep erms xsaveopt dtherm arat pln pts md_clear flush_l1d
+Virtualization features:
+  Virtualization:        VT-x
+Caches (sum of all):
+  L1d:                   64 KiB (2 instances)
+  L1i:                   64 KiB (2 instances)
+  L2:                    512 KiB (2 instances)
+  L3:                    3 MiB (1 instance)
+NUMA:
+  NUMA node(s):          1
+  NUMA node0 CPU(s):     0,1
+Vulnerabilities:
+  Itlb multihit:         KVM: Mitigation: VMX disabled
+  L1tf:                  Mitigation; PTE Inversion; VMX conditional cache flushes, SMT disabled
+  Mds:                   Mitigation; Clear CPU buffers; SMT disabled
+  Meltdown:              Mitigation; PTI
+  Spec store bypass:     Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+  Spectre v1:            Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+  Spectre v2:            Mitigation; Full generic retpoline, IBPB conditional, IBRS_FW, STIBP disabled, RSB filling
+  Srbds:                 Not affected
+  Tsx async abort:       Not affected
+
+
+
+A run with -O0:
+
+
+❯ /usr/bin/time -p ./quick_sort
+ WARN : Current stack size is 8388608 bytes,
+      : but we need at least 67108864 bytes,
+      : so we shall auto adjust that.
+ INFO : Thread #0 dispatched with data size of 1000
+ INFO : Thread #1 dispatched with data size of 50000
+ INFO : Thread #2 dispatched with data size of 100000
+ INFO : Thread #3 dispatched with data size of 150000
+ INFO : Thread #4 dispatched with data size of 200000
+ INFO : Thread #5 dispatched with data size of 250000
+ INFO : Thread #6 dispatched with data size of 300000
+ INFO : Thread #7 dispatched with data size of 350000
+ INFO : Thread #8 dispatched with data size of 400000
+ INFO : Thread #9 dispatched with data size of 450000
+ INFO : Thread #10 dispatched with data size of 1000000
+ INFO : Thread #0 joined after 0.054013 seconds
+ INFO : Thread #1 joined after 109.121486 seconds
+ INFO : Thread #2 joined after 400.717170 seconds
+ INFO : Thread #3 joined after 835.733977 seconds
+ INFO : Thread #4 joined after 1368.195054 seconds
+ INFO : Thread #5 joined after 1952.431707 seconds
+ INFO : Thread #6 joined after 2551.022418 seconds
+ INFO : Thread #7 joined after 3117.353419 seconds
+ INFO : Thread #8 joined after 3601.985144 seconds
+ INFO : Thread #9 joined after 3974.557721 seconds
+ INFO : Thread #10 joined after 10764.736378 seconds
+
+Data Size   Ordered       Reversed      Same          Random     50% sorted
+---------   -----------   -----------   -----------   --------   -----------
+     1000      0.015864      0.001930      0.002508   0.000099      0.011636
+    50000     32.064648     24.856542     31.827876   0.024362     20.118633
+   100000    125.493307     88.299938    114.758079   0.071656     71.846927
+   150000    269.557086    191.338566    230.039108   0.114877    144.529649
+   200000    463.393148    313.778900    358.698110   0.165343    231.873043
+   250000    694.263751    446.318779    479.608035   0.226485    331.809068
+   300000    956.580595    589.279608    576.531002   0.295639    428.094915
+   350000   1250.341882    732.812803    641.883786   0.344502    491.661261
+   400000   1553.372253    851.718811    655.308708   0.378410    540.942789
+   450000   1879.148920    941.477249    591.277804   0.444903    562.012166
+  1000000   4758.857606   1932.678130   2505.625125   1.050485   1566.200825
+real 10764.73
+user 14493.29
+sys 4.81
+
+
+With -O3:
+
+
+❯ /usr/bin/time -p ./quick_sort
+ WARN : Current stack size is 8388608 bytes,
+      : but we need at least 67108864 bytes,
+      : so we shall auto adjust that.
+ INFO : Thread #0 dispatched with data size of 1000
+ INFO : Thread #1 dispatched with data size of 50000
+ INFO : Thread #2 dispatched with data size of 100000
+ INFO : Thread #3 dispatched with data size of 150000
+ INFO : Thread #4 dispatched with data size of 200000
+ INFO : Thread #5 dispatched with data size of 250000
+ INFO : Thread #6 dispatched with data size of 300000
+ INFO : Thread #7 dispatched with data size of 350000
+ INFO : Thread #8 dispatched with data size of 400000
+ INFO : Thread #9 dispatched with data size of 450000
+ INFO : Thread #10 dispatched with data size of 1000000
+ INFO : Thread #0 joined after 0.001319 seconds
+ INFO : Thread #1 joined after 24.560513 seconds
+ INFO : Thread #2 joined after 91.009308 seconds
+ INFO : Thread #3 joined after 189.751768 seconds
+ INFO : Thread #4 joined after 309.549289 seconds
+ INFO : Thread #5 joined after 444.566818 seconds
+ INFO : Thread #6 joined after 580.230734 seconds
+ INFO : Thread #7 joined after 708.333890 seconds
+ INFO : Thread #8 joined after 820.548116 seconds
+ INFO : Thread #9 joined after 905.242086 seconds
+ INFO : Thread #10 joined after 2449.567983 seconds
+
+Data Size   Ordered       Reversed      Same          Random     50% sorted
+---------   -----------   -----------   -----------   --------   -----------
+     1000      0.000695      0.000475      0.000547   0.000068      0.000386
+    50000      6.764926      5.760999      6.936015   0.007110      4.860007
+   100000     27.349013     20.873586     25.045212   0.047469     17.437686
+   150000     58.728993     45.386841     50.148161   0.094474     35.128504
+   200000    101.736846     74.692511     76.690473   0.099636     56.053660
+   250000    151.931054    107.475482    104.666477   0.110449     80.067918
+   300000    211.296975    140.293148    125.202095   0.138717    103.005872
+   350000    274.462842    175.075331    138.869920   0.177953    119.446261
+   400000    342.172008    203.893573    142.119967   0.190194    131.847510
+   450000    414.544261    226.966867    127.284096   0.232318    135.950593
+  1000000   1062.615318    457.097198    547.106471   0.484393    381.850063
+real 2449.57
+user 3295.50
+sys 1.50
+
+
+
+Now a look at single threaded performance on the same machine,
+
+With -O0
+
+
+❯ /usr/bin/time -p ./quick_sort
+Data Size   Ordered       Reversed      Same          Random     50% sorted
+---------   -----------   -----------   -----------   --------   -----------
+     1000      0.002536      0.001922      0.002523   0.000103      0.001594
+    50000      6.217490      4.736565      6.216238   0.007413      3.885405
+   100000     24.863568     18.944634     24.862140   0.015629     15.571651
+   150000     55.944723     42.625214     55.943056   0.024446     34.980721
+   200000     99.460578     75.784140     99.458235   0.033312     62.067192
+   250000    155.407464    118.411303    155.407118   0.042142     97.224368
+   300000    223.798862    170.515317    223.795318   0.052254    139.993401
+   350000    304.615473    232.097944    304.615342   0.059907    190.591442
+   400000    397.877070    303.159670    397.876300   0.071237    248.760661
+   450000    503.611678    383.702357    503.605808   0.079680    315.239731
+  1000000   2492.216574   1900.190873   2492.186843   0.192833   1558.793126
+real 14529.99
+user 14443.02
+sys 2.89
+
+
+With -O3:
+
+
+❯ /usr/bin/time -p ./quick_sort
+Data Size   Ordered       Reversed      Same          Random     50% sorted
+---------   -----------   -----------   -----------   --------   -----------
+     1000      0.000567      0.000469      0.000550   0.000050      0.000393
+    50000      1.344701      1.119995      1.343372   0.003597      0.938175
+   100000      5.373812      4.477587      5.372716   0.007445      3.765377
+   150000     12.089531     10.073869     12.088350   0.011591      8.448542
+   200000     21.491599     17.908519     21.490310   0.015531     15.057262
+   250000     33.578156     27.978413     33.577112   0.019997     23.464824
+   300000     48.351072     40.289731     48.350857   0.024072     33.834283
+   350000     65.811947     54.838851     65.808906   0.028971     46.011707
+   400000     85.955119     71.619590     85.955382   0.033005     60.066726
+   450000    108.792838     90.655721    108.790899   0.037768     76.044676
+  1000000    543.949719    454.395938    543.703349   0.088883    379.320505
+real 3278.95
+user 3273.80
+sys 0.05
+
+
+
+A slowdown after the srand48 and assert stuff, tested on the i5 with -O3:
+
+
+probook $ /usr/bin/time -p ./quick_sort
+ WARN : Current stack size is 8388608 bytes,
+      : but we need at least 67108864 bytes,
+      : so we shall auto adjust that.
+ INFO : Thread #0 dispatched with data size of 1000
+ INFO : Thread #1 dispatched with data size of 50000
+ INFO : Thread #2 dispatched with data size of 100000
+ INFO : Thread #3 dispatched with data size of 150000
+ INFO : Thread #4 dispatched with data size of 200000
+ INFO : Thread #5 dispatched with data size of 250000
+ INFO : Thread #6 dispatched with data size of 300000
+ INFO : Thread #7 dispatched with data size of 350000
+ INFO : Thread #8 dispatched with data size of 400000
+ INFO : Thread #9 dispatched with data size of 450000
+ INFO : Thread #10 dispatched with data size of 1000000
+ INFO : Thread #0 joined after 0.000191 seconds
+ INFO : Thread #1 joined after 15.503520 seconds
+ INFO : Thread #2 joined after 73.002238 seconds
+ INFO : Thread #3 joined after 161.829306 seconds
+ INFO : Thread #4 joined after 263.273046 seconds
+ INFO : Thread #5 joined after 416.183083 seconds
+ INFO : Thread #6 joined after 501.227339 seconds
+ INFO : Thread #7 joined after 575.715406 seconds
+ INFO : Thread #8 joined after 700.470510 seconds
+ INFO : Thread #9 joined after 870.603572 seconds
+ INFO : Thread #10 joined after 2829.274436 seconds
+
+Data Size   Ordered       Reversed      Same          Random     50% sorted
+---------   -----------   -----------   -----------   --------   -----------
+     1000      0.003394      0.001301      0.001134   0.000249      0.000756
+    50000      4.599102      3.575522      4.568950   0.010089      2.747206
+   100000     18.081596     19.260871     22.036434   0.012066     13.594947
+   150000     46.541292     42.287093     44.858377   0.047924     28.049445
+   200000     84.767683     67.680358     63.864437   0.027552     46.892237
+   250000    126.201543     97.541946    117.213359   0.034667     75.144981
+   300000    175.532094    119.161429     96.867370   0.042614    109.582702
+   350000    235.630010    109.541700    154.539443   0.069694     75.877479
+   400000    308.651188    151.538062    142.221116   0.053866     97.953160
+   450000    389.207045    215.386569    156.403307   0.112481    109.424472
+  1000000   1031.983752    593.572757    740.458749   0.276368    462.897517
+real 2829.28
+user 6297.27
+sys 0.58
