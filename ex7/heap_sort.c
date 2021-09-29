@@ -201,7 +201,28 @@ int main(void)
                         getchar();  /* eat trailing newline */
                         break;
 
-                    case '1': getchar(); printf("Unimplemented\n"); break;
+                    case '1':
+                        if ( !(flags & POPULATED) ) {
+                            capacity = 1;
+                            n = 0;
+                            arr = malloc(sizeof *arr);
+                            flags |= POPULATED;
+                        } else {
+                            if ( capacity == n ) {
+                                capacity *= 2;
+                                arr = realloc(arr, capacity * sizeof *arr);
+                            }
+                        }
+
+                        printf("Enter new number: ");
+                        scanf("%i", &arr[n++]);
+                        getchar();  /* eat trailing newline */
+
+                        if ( n == 1 ) {
+                            flags |= SORTED_ASC | SORTED_DESC;
+                        }
+                        break;
+
                     case '2': getchar(); printf("Unimplemented\n"); break;
                     default: goto _exit;
                 } break;
