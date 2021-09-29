@@ -120,7 +120,7 @@ int compare_desc(const void *p, const void *q)
 int main(void)
 {
     int *arr = NULL;
-    int n, capacity, flags=0;
+    int n, capacity=0, flags=0;
     clock_t start, end;
 
     printf(
@@ -165,7 +165,9 @@ int main(void)
 
                         if ( flags & POPULATED ) free(arr);
                         arr = malloc(n * sizeof *arr);
-                        capacity = n;
+
+                        if ( n > capacity )
+                            capacity = n;
 
                         for (int i = 0; i < n; i++) {
                             arr[i] = lrand48();
@@ -177,7 +179,28 @@ int main(void)
                         flags &= ~(SORTED_ASC | SORTED_DESC);
                         break;
 
-                    case '0': getchar(); printf("Unimplemented\n"); break;
+                    case '0':
+                        getchar();  /* eat trailing newline */
+                        if ( !(flags & POPULATED) ) {
+                            printf("Array not populated yet.\n");
+                            break;
+                        }
+
+                        int i;
+                        printf("Enter node index: ");
+                        scanf("%d", &i);
+                        getchar();  /* eat trailing newline */
+
+                        if ( i >= n ) {
+                            printf("No such node exists!\n");
+                            break;
+                        }
+
+                        printf("Enter new value: ");
+                        scanf("%d", &arr[i]);
+                        getchar();  /* eat trailing newline */
+                        break;
+
                     case '1': getchar(); printf("Unimplemented\n"); break;
                     case '2': getchar(); printf("Unimplemented\n"); break;
                     default: goto _exit;
@@ -187,6 +210,11 @@ int main(void)
                 getchar();  /* eat trailing newline */
                 if ( !(flags & POPULATED) ) {
                     printf("Array not populated yet.\n");
+                    break;
+                }
+
+                if ( !n ) {
+                    printf("Error: Empty array\n");
                     break;
                 }
 
@@ -205,6 +233,11 @@ int main(void)
                     break;
                 }
 
+                if ( !n ) {
+                    printf("Error: Empty array\n");
+                    break;
+                }
+
                 flags &= ~SORTED_DESC;
                 heap_sort(arr, n);
                 printf("Array sorted in ascending order.\n");
@@ -216,6 +249,11 @@ int main(void)
                 getchar();  /* eat trailing newline */
                 if ( !(flags & POPULATED) ) {
                     printf("Array not populated yet.\n");
+                    break;
+                }
+
+                if ( !n ) {
+                    printf("Error: Empty array\n");
                     break;
                 }
 
@@ -235,6 +273,11 @@ int main(void)
                 getchar();  /* eat trailing newline */
                 if ( !(flags & POPULATED) ) {
                     printf("Array not populated yet.\n");
+                    break;
+                }
+
+                if ( !n ) {
+                    printf("Error: Empty array\n");
                     break;
                 }
 
@@ -267,6 +310,11 @@ int main(void)
                     break;
                 }
 
+                if ( !n ) {
+                    printf("Error: Empty array\n");
+                    break;
+                }
+
                 if ( !(flags & SORTED_ASC) && !(flags & SORTED_DESC) ) {
                     printf("Array isn't sorted in any order yet. "
                            "Sort it in ascending order first.\n");
@@ -294,6 +342,11 @@ int main(void)
                 getchar();  /* eat trailing newline */
                 if ( !(flags & POPULATED) ) {
                     printf("Array not populated yet.\n");
+                    break;
+                }
+
+                if ( !n ) {
+                    printf("Error: Empty array\n");
                     break;
                 }
 
