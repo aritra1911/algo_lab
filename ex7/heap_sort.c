@@ -153,10 +153,12 @@ int main(void)
             case '\n': break;
             case '1':
                 switch (getchar()) {
-                    case '\n':
+                    case '\n': {
                         printf("Enter n: ");
                         scanf("%d", &n);
                         getchar();  /* eat trailing newline */
+
+                        if ( !n ) break;
 
                         /* Seed RNG with current time's nanoseconds field */
                         struct timespec time_now;
@@ -177,9 +179,9 @@ int main(void)
 
                         /* Clear sorted flags */
                         flags &= ~(SORTED_ASC | SORTED_DESC);
-                        break;
+                    } break;
 
-                    case '0':
+                    case '0': {
                         getchar();  /* eat trailing newline */
                         if ( !(flags & POPULATED) ) {
                             printf("Array not populated yet.\n");
@@ -199,7 +201,7 @@ int main(void)
                         printf("Enter new value: ");
                         scanf("%d", &arr[i]);
                         getchar();  /* eat trailing newline */
-                        break;
+                    } break;
 
                     case '1':
                         if ( !(flags & POPULATED) ) {
@@ -220,10 +222,39 @@ int main(void)
 
                         if ( n == 1 ) {
                             flags |= SORTED_ASC | SORTED_DESC;
+                        } else {
+                            flags &= ~(SORTED_ASC | SORTED_DESC);
                         }
                         break;
 
-                    case '2': getchar(); printf("Unimplemented\n"); break;
+                    case '2': {
+                        getchar();  /* eat trailing newline */
+
+                        if ( !(flags & POPULATED) ) {
+                            printf("Array not populated yet.\n");
+                            break;
+                        }
+
+                        if ( !n ) {
+                            printf("Error: Empty array\n");
+                            break;
+                        }
+
+                        int i;
+                        printf("Enter node index: ");
+                        scanf("%d", &i);
+                        getchar();  /* eat trailing newline */
+
+                        if ( i >= n ) {
+                            printf("No such node exists!\n");
+                            break;
+                        }
+
+                        for (int j = i; j < n - 1; j++)
+                            arr[j] = arr[j + 1];
+                        n--;
+                    } break;
+
                     default: goto _exit;
                 } break;
 
