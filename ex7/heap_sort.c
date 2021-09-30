@@ -13,6 +13,8 @@
 #include <math.h>
 #include <time.h>
 
+#define NANOSECS         1000000000
+
 #define SORTED_ASC  ( 1 << 0 )
 #define SORTED_DESC ( 1 << 1 )
 #define POPULATED   ( 1 << 2 )
@@ -25,6 +27,7 @@ void sift_down(int *, int, int);
 void heapify(int *, int);
 void heap_sort(int *, int);
 int compare_desc(const void *, const void *);
+double timediff(struct timespec, struct timespec);
 
 /* Repair the heap whose root element is at index 'start',
  * assuming the heaps rooted at its children are valid */
@@ -117,11 +120,33 @@ int compare_desc(const void *p, const void *q)
     return ( x < y ) ? 1 : ( x == y ) ? 0 : -1;
 }
 
+double timediff(struct timespec start, struct timespec end)
+{
+    /*
+     * Shamelessly copied from :
+     * https://git.sr.ht/~blastwave/bw/tree/bw/item/time_and_date/timediff.c
+     */
+
+    struct timespec delta;
+
+    if ( (end.tv_nsec - start.tv_nsec) < 0 ) {
+        /* make a full second adjustment to tv_sec */
+        delta.tv_sec = end.tv_sec - start.tv_sec - 1;
+        /* we have to add a full second to delta.tv_nsec */
+        delta.tv_nsec = NANOSECS + end.tv_nsec - start.tv_nsec;
+
+    } else {
+        delta.tv_sec = end.tv_sec - start.tv_sec;
+        delta.tv_nsec = end.tv_nsec - start.tv_nsec;
+    }
+
+    return delta.tv_sec + (double) delta.tv_nsec / NANOSECS;
+}
+
 int main(void)
 {
     int *arr = NULL;
     int n, capacity=0, flags=0;
-    clock_t start, end;
 
     printf(
         "----------------------------------------------------------------\n"
@@ -165,11 +190,15 @@ int main(void)
                         clock_gettime(CLOCK_MONOTONIC, &time_now);
                         srand48(time_now.tv_nsec);
 
-                        if ( flags & POPULATED ) free(arr);
-                        arr = malloc(n * sizeof *arr);
-
-                        if ( n > capacity )
+                        if ( flags & POPULATED ) {
+                            if ( capacity < n ) {
+                                capacity = n;
+                                arr = realloc(arr, capacity * sizeof *arr);
+                            }
+                        } else {
                             capacity = n;
+                            arr = malloc(capacity * sizeof *arr);
+                        }
 
                         for (int i = 0; i < n; i++) {
                             arr[i] = lrand48();
@@ -321,7 +350,7 @@ int main(void)
 
                 break;
 
-            case '5':
+            case '5': {
                 getchar();  /* eat trailing newline */
                 if ( !(flags & POPULATED) ) {
                     printf("Array not populated yet.\n");
@@ -343,19 +372,20 @@ int main(void)
                     break;
                 }
 
-                start = clock();
+                struct timespec start, end;
+
+                clock_gettime(CLOCK_MONOTONIC, &start);
                 heap_sort(arr, n);
-                end = clock();
+                clock_gettime(CLOCK_MONOTONIC, &end);
 
                 flags |= SORTED_ASC;
 
                 printf("Array sorted in ascending order.\n"
-                       "Time taken : %lf seconds\n",
-                       ((double) (end - start)) / CLOCKS_PER_SEC);
+                       "Time taken : %lf seconds\n", timediff(start, end));
 
-                break;
+            } break;
 
-            case '6':
+            case '6': {
                 getchar();  /* eat trailing newline */
                 if ( !(flags & POPULATED) ) {
                     printf("Array not populated yet.\n");
@@ -379,18 +409,19 @@ int main(void)
                     break;
                 }
 
-                start = clock();
+                struct timespec start, end;
+
+                clock_gettime(CLOCK_MONOTONIC, &start);
                 heap_sort(arr, n);
-                end = clock();
+                clock_gettime(CLOCK_MONOTONIC, &end);
 
                 printf("Array already sorted in ascending order, "
                        "sorted again in ascending order.\n"
-                       "Time taken : %lf seconds\n",
-                       ((double) (end - start)) / CLOCKS_PER_SEC);
+                       "Time taken : %lf seconds\n", timediff(start, end));
 
-                break;
+            } break;
 
-            case '7':
+            case '7': {
                 getchar();  /* eat trailing newline */
                 if ( !(flags & POPULATED) ) {
                     printf("Array not populated yet.\n");
@@ -414,18 +445,20 @@ int main(void)
                     break;
                 }
 
-                start = clock();
+                struct timespec start, end;
+
+                clock_gettime(CLOCK_MONOTONIC, &start);
                 heap_sort(arr, n);
-                end = clock();
+                clock_gettime(CLOCK_MONOTONIC, &end);
+
                 flags &= ~SORTED_DESC;
                 flags |= SORTED_ASC;
 
                 printf("Array already sorted in descending order, "
                        "sorted again but in ascending order.\n"
-                       "Time taken : %lf seconds\n",
-                       ((double) (end - start)) / CLOCKS_PER_SEC);
+                       "Time taken : %lf seconds\n", timediff(start, end));
 
-                break;
+            } break;
 
             case '8':
                 getchar();  /* eat trailing newline */
@@ -440,36 +473,41 @@ int main(void)
 
                 int slno = 1;
                 for (int n = 5000; n <= 50000; n += 5000) {
-                    /* Initialize RNG seed */
-                    srand((unsigned) time(NULL));
+
+                    struct timespec time_now, start, end;
+                    double rand_time, asc_time, desc_time;
+
+                    /* Seed RNG using current time's nanoseconds field */
+                    clock_gettime(CLOCK_MONOTONIC, &time_now);
+                    srand48(time_now.tv_nsec);
 
                     int *arr = malloc(n * sizeof *arr);
 
                     /* Generate `n` random numbers */
                     for (int i = 0; i < n; i++) {
-                        arr[i] = rand();
+                        arr[i] = lrand48();
                     }
 
                     /* Time sorting in ascending */
-                    start = clock();
+                    clock_gettime(CLOCK_MONOTONIC, &start);
                     heap_sort(arr, n);
-                    end = clock();
-                    double rand_time = ((double) (end - start))/CLOCKS_PER_SEC;
+                    clock_gettime(CLOCK_MONOTONIC, &end);
+                    rand_time = timediff(start, end);
 
                     /* Time sorting in ascending again */
-                    start = clock();
+                    clock_gettime(CLOCK_MONOTONIC, &start);
                     heap_sort(arr, n);
-                    end = clock();
-                    double asc_time = ((double) (end - start))/CLOCKS_PER_SEC;
+                    clock_gettime(CLOCK_MONOTONIC, &end);
+                    asc_time = timediff(start, end);
 
                     /* Sort that in descending */
                     qsort(arr, n, sizeof *arr, compare_desc);
 
                     /* Sort the descending back in ascending */
-                    start = clock();
+                    clock_gettime(CLOCK_MONOTONIC, &start);
                     heap_sort(arr, n);
-                    end = clock();
-                    double desc_time = ((double) (end - start))/CLOCKS_PER_SEC;
+                    clock_gettime(CLOCK_MONOTONIC, &end);
+                    desc_time = timediff(start, end);
 
                     printf("%3d   %5d   %15lf   %15lf   %15lf\n",
                            slno++, n, asc_time, desc_time, rand_time);
