@@ -1,11 +1,7 @@
 /*
- * Write a menu (given as follows) driven program to sort an array of n
- * integers in ascending order by heap sort algorithm and perform the
- * operations on max heap. Determine the time required to sort the
- * elements. Repeat the experiment for different values of n, the number
- * of elements in the array to be sorted and plot a graph of the time
- * taken versus n. The elements can be read from a file or can be
- * generated using the random number generator.
+ * Similar to above program no.7.1, write a menu driven program to sort
+ * an array of n integers in descending order by heap sort algorithm.
+ * Hints: Use min heap and accordingly change the menu options.
  */
 
 #include <stdio.h>
@@ -13,7 +9,7 @@
 #include <math.h>
 #include <time.h>
 
-#define NANOSECS         1000000000
+#define NANOSECS    1000000000
 
 #define SORTED_ASC  ( 1 << 0 )
 #define SORTED_DESC ( 1 << 1 )
@@ -26,7 +22,7 @@
 void sift_down(int *, int, int);
 void heapify(int *, int);
 void heap_sort(int *, int);
-int compare_desc(const void *, const void *);
+int compare_asc(const void *, const void *);
 double timediff(struct timespec, struct timespec);
 
 /* Repair the heap whose root element is at index 'start',
@@ -41,11 +37,11 @@ void sift_down(int *a, int start, int end)
             child = LEFT_CHILD(root),  /* Left child of root */
             swap = root;  /* Keeps track of child to swap with */
 
-        if ( a[swap] < a[child] )
+        if ( a[swap] > a[child] )
             swap = child;
 
-        /* If there is a right child and that child is greater */
-        if ( child+1 <= end && a[swap] < a[child+1] )
+        /* If there is a right child and that child is lesser */
+        if ( child+1 <= end && a[swap] > a[child+1] )
             swap = child + 1;
 
         if ( swap == root )
@@ -109,7 +105,7 @@ void heap_sort(int *a, int count)
     }
 }
 
-int compare_desc(const void *p, const void *q)
+int compare_asc(const void *p, const void *q)
 {
     /* Compare function to sort an array in descending
      * order using libc's built-in `qsort()` function */
@@ -117,7 +113,7 @@ int compare_desc(const void *p, const void *q)
     int x = *((int *) p);
     int y = *((int *) q);
 
-    return ( x < y ) ? 1 : ( x == y ) ? 0 : -1;
+    return ( x < y ) ? -1 : ( x == y ) ? 0 : 1;
 }
 
 double timediff(struct timespec start, struct timespec end)
@@ -149,27 +145,27 @@ int main(void)
     int n, capacity=0, flags=0;
 
     printf(
-        "----------------------------------------------------------------\n"
-        "                MAX-HEAP & PRIORITY QUEUE MENU\n"
+        "------------------------------------------------------------------\n"
+        "                MIN-HEAP & PRIORITY QUEUE MENU\n"
         " 0. Quit\n"
         " 1. n Random numbers => Array\n"
         " 2. Display the Array\n"
-        " 3. Sort the Array in Ascending Order by using Max-Heap Sort\n"
+        " 3. Sort the Array in Descending Order by using Min-Heap Sort\n"
         "    technique\n"
-        " 4. Sort the Array in Descending Order by using any algorithm\n"
-        " 5. Time Complexity to sort ascending of random data\n"
-        " 6. Time Complexity to sort ascending of data already sorted in\n"
-        "    ascending order\n"
-        " 7. Time Complexity to sort ascending of data already sorted in\n"
+        " 4. Sort the Array in Ascending Order by using any algorithm\n"
+        " 5. Time Complexity to sort descending of random data\n"
+        " 6. Time Complexity to sort descending of data already sorted in\n"
         "    descending order\n"
-        " 8. Time Complexity to sort ascending all Cases (Data Ascending,\n"
-        "    Data in Descending & Random Data) in Tabular form for\n"
+        " 7. Time Complexity to sort descending of data already sorted in\n"
+        "    ascending order\n"
+        " 8. Time Complexity to sort descending all Cases (Data Descending,\n"
+        "    Data in Ascending & Random Data) in Tabular form for\n"
         "    values n=5000 to 50000, step=5000\n"
         " 9. Extract largest element\n"
         "10. Replace value at a node with new value\n"
         "11. Insert a new element\n"
         "12. Delete an element\n"
-        "----------------------------------------------------------------\n"
+        "------------------------------------------------------------------\n"
     );
 
     while ( 1 ) {
@@ -230,6 +226,8 @@ int main(void)
                         printf("Enter new value: ");
                         scanf("%d", &arr[i]);
                         getchar();  /* eat trailing newline */
+
+                        flags &= ~(SORTED_ASC | SORTED_DESC);
                     } break;
 
                     case '1':
@@ -319,10 +317,10 @@ int main(void)
                     break;
                 }
 
-                flags &= ~SORTED_DESC;
+                flags &= ~SORTED_ASC;
                 heap_sort(arr, n);
-                printf("Array sorted in ascending order.\n");
-                flags |= SORTED_ASC;
+                printf("Array sorted in descending order.\n");
+                flags |= SORTED_DESC;
 
                 break;
 
@@ -338,15 +336,15 @@ int main(void)
                     break;
                 }
 
-                flags &= ~SORTED_ASC;
+                flags &= ~SORTED_DESC;
 
                 /* Note that despite its name, `qsort()` may or may not be a
                  * direct quicksort implementation. See:
                  * http://calmerthanyouare.org/2013/05/31/qsort-shootout.html */
-                qsort(arr, n, sizeof *arr, compare_desc);
-                printf("Array sorted in descending order"
+                qsort(arr, n, sizeof *arr, compare_asc);
+                printf("Array sorted in ascending order"
                        " (using `qsort()`).\n");
-                flags |= SORTED_DESC;
+                flags |= SORTED_ASC;
 
                 break;
 
@@ -362,13 +360,13 @@ int main(void)
                     break;
                 }
 
-                if ( flags & SORTED_ASC ) {
-                    printf("Array is already sorted in ascending order.\n");
+                if ( flags & SORTED_DESC ) {
+                    printf("Array is already sorted in descending order.\n");
                     break;
                 }
 
-                if ( flags & SORTED_DESC ) {
-                    printf("Array is already sorted in descending order.\n");
+                if ( flags & SORTED_ASC ) {
+                    printf("Array is already sorted in ascending order.\n");
                     break;
                 }
 
@@ -378,7 +376,7 @@ int main(void)
                 heap_sort(arr, n);
                 clock_gettime(CLOCK_MONOTONIC, &end);
 
-                flags |= SORTED_ASC;
+                flags |= SORTED_DESC;
 
                 printf("Array sorted in ascending order.\n"
                        "Time taken : %lf seconds\n", timediff(start, end));
@@ -386,42 +384,6 @@ int main(void)
             } break;
 
             case '6': {
-                getchar();  /* eat trailing newline */
-                if ( !(flags & POPULATED) ) {
-                    printf("Array not populated yet.\n");
-                    break;
-                }
-
-                if ( !n ) {
-                    printf("Error: Empty array\n");
-                    break;
-                }
-
-                if ( !(flags & SORTED_ASC) && !(flags & SORTED_DESC) ) {
-                    printf("Array isn't sorted in any order yet. "
-                           "Sort it in ascending order first.\n");
-                    break;
-                }
-
-                if ( flags & SORTED_DESC ) {
-                    printf("Array is sorted in descending order. "
-                           "Sort it in ascending order first.\n");
-                    break;
-                }
-
-                struct timespec start, end;
-
-                clock_gettime(CLOCK_MONOTONIC, &start);
-                heap_sort(arr, n);
-                clock_gettime(CLOCK_MONOTONIC, &end);
-
-                printf("Array already sorted in ascending order, "
-                       "sorted again in ascending order.\n"
-                       "Time taken : %lf seconds\n", timediff(start, end));
-
-            } break;
-
-            case '7': {
                 getchar();  /* eat trailing newline */
                 if ( !(flags & POPULATED) ) {
                     printf("Array not populated yet.\n");
@@ -451,11 +413,47 @@ int main(void)
                 heap_sort(arr, n);
                 clock_gettime(CLOCK_MONOTONIC, &end);
 
-                flags &= ~SORTED_DESC;
-                flags |= SORTED_ASC;
-
                 printf("Array already sorted in descending order, "
-                       "sorted again but in ascending order.\n"
+                       "sorted again in descending order.\n"
+                       "Time taken : %lf seconds\n", timediff(start, end));
+
+            } break;
+
+            case '7': {
+                getchar();  /* eat trailing newline */
+                if ( !(flags & POPULATED) ) {
+                    printf("Array not populated yet.\n");
+                    break;
+                }
+
+                if ( !n ) {
+                    printf("Error: Empty array\n");
+                    break;
+                }
+
+                if ( !(flags & SORTED_ASC) && !(flags & SORTED_DESC) ) {
+                    printf("Array isn't sorted in any order yet. "
+                           "Sort it in ascending order first.\n");
+                    break;
+                }
+
+                if ( flags & SORTED_DESC ) {
+                    printf("Array is sorted in descending order. "
+                           "Sort it in ascending order first.\n");
+                    break;
+                }
+
+                struct timespec start, end;
+
+                clock_gettime(CLOCK_MONOTONIC, &start);
+                heap_sort(arr, n);
+                clock_gettime(CLOCK_MONOTONIC, &end);
+
+                flags &= ~SORTED_ASC;
+                flags |= SORTED_DESC;
+
+                printf("Array already sorted in ascending order, "
+                       "sorted again but in descending order.\n"
                        "Time taken : %lf seconds\n", timediff(start, end));
 
             } break;
@@ -467,8 +465,8 @@ int main(void)
                 printf("             Analysis of Heap Sort Algorithm\n"
                        "Sl.   Value   Time Complexity   Time Complexity   Time "
                        "Complexity\nNo.   of n       (Data in          (Data in"
-                       "        (Random Data)\n                 Ascending)     "
-                       "  Descending)\n----------------------------------------"
+                       "        (Random Data)\n                Descending)     "
+                       "   Ascending)\n----------------------------------------"
                        "-------------------------\n");
 
                 int slno = 1;
@@ -498,19 +496,19 @@ int main(void)
                     clock_gettime(CLOCK_MONOTONIC, &start);
                     heap_sort(arr, n);
                     clock_gettime(CLOCK_MONOTONIC, &end);
-                    asc_time = timediff(start, end);
+                    desc_time = timediff(start, end);
 
                     /* Sort that in descending */
-                    qsort(arr, n, sizeof *arr, compare_desc);
+                    qsort(arr, n, sizeof *arr, compare_asc);
 
                     /* Sort the descending back in ascending */
                     clock_gettime(CLOCK_MONOTONIC, &start);
                     heap_sort(arr, n);
                     clock_gettime(CLOCK_MONOTONIC, &end);
-                    desc_time = timediff(start, end);
+                    asc_time = timediff(start, end);
 
                     printf("%3d   %5d   %15lf   %15lf   %15lf\n",
-                           slno++, n, asc_time, desc_time, rand_time);
+                           slno++, n, desc_time, asc_time, rand_time);
 
                     free(arr);
                 }
