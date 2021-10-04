@@ -83,7 +83,7 @@ int main(void)
         putchar('\n');
     }
 
-    max_profit = fractional_knapsack(capacity, items, 3);
+    max_profit = fractional_knapsack(capacity, items, n);
 
     printf("Maximum profit : %f\n", max_profit);
     for (int i = 0; i < n; i++) {
