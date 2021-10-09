@@ -2,7 +2,7 @@ CFLAGS = -Wall -Wextra -pedantic -g -O0 -std=c99
 
 CPPFLAGS = -D_XOPEN_SOURCE -D_POSIX_C_SOURCE=199309L
 
-SRCS = fractional_knapsack.c activity_selection.c
+SRCS = fractional_knapsack.c activity_selection.c intervals.c
 
 OBJS = $(SRCS:.c=.o)
 BINS = $(SRCS:.c=)
@@ -21,6 +21,9 @@ activity_selection: activity_selection.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 fractional_knapsack: fractional_knapsack.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+intervals: intervals.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 clean:
