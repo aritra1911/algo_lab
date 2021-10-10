@@ -19,16 +19,20 @@ typedef struct {
     int start, end;
 } Interval;
 
+static int length(const Interval *);
+static char *to_string(const Interval *, char *);
 int compare_intervals(const void *, const void *);
-static Interval *get_interval_by_index(size_t, Interval *, size_t);
+static size_t length_subset(Interval **);
+static void print_subset(Interval **);
+static Interval **get_next_subset(Interval **, Interval *, size_t, int);
 
-int length(const Interval *interval)
+static int length(const Interval *interval)
 {
     int len = interval->end - interval->start;
     return len;
 }
 
-char *to_string(const Interval *interval, char *str)
+static char *to_string(const Interval *interval, char *str)
 {
     sprintf(str, "(%c, %i, %i)", interval->name,
             interval->start, interval->end);
@@ -41,29 +45,24 @@ int compare_intervals(const void *i1, const void *i2)
     return ((Interval *) i1)->end - ((Interval *) i2)->end;
 }
 
-static Interval *get_interval_by_index(size_t idx, Interval *intervals,
-                                                   size_t n)
+static size_t length_subset(Interval **subset_ptrs)
 {
-    for (size_t i = 0; i < n; i++) {
-        if ( idx == intervals[i].index ) {
-            return &intervals[i];
-        }
-    }
-
-    return NULL;
+    size_t i;
+    for (i = 0; subset_ptrs[i]; i++);
+    return i;
 }
 
-void print_subset(Interval **subset_ptrs)
+static void print_subset(Interval **subset_ptrs)
 {
     printf("{ ");
     for (Interval **p = subset_ptrs; *p; p++) {
         printf("%c, ", (*p)->name);
     }
-    printf("}\n");
+    printf("}");
 }
 
-Interval **get_next_subset(Interval **subset_ptrs, Interval *intervals,
-                           size_t n, int least_len)
+static Interval **get_next_subset(Interval **subset_ptrs, Interval *intervals,
+                                  size_t n, int least_len)
 {
     Interval **p = subset_ptrs;
     Interval *q, *prev;
@@ -94,13 +93,14 @@ Interval **get_next_subset(Interval **subset_ptrs, Interval *intervals,
         }
 
         if ( q > &intervals[n-1] ) {
-            return subset_ptrs;
+            break;
         } else {
             *p = q;
             p++;
         }
     }
-//    } while ( subset_ptrs[0] != NULL );
+
+    return subset_ptrs;
 }
 
 int main(void)
@@ -147,34 +147,25 @@ int main(void)
     printf("Excluding the least length intervals,\n"
            "the largest sub set of non-overlapping intervals : ");
 
-
     Interval **subset_ptrs = calloc(n, sizeof (Interval *));
 
+    size_t max_len = 0;
     do {
-        print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
+        size_t len_ss;
+
+        get_next_subset(subset_ptrs, intervals, n, least_length);
+        len_ss = length_subset(subset_ptrs);
+
+        if ( len_ss == max_len || max_len == 0 ) {
+            print_subset(subset_ptrs);
+            printf(", ");
+            if ( !max_len ) max_len = len_ss;
+        }
     } while ( subset_ptrs[0] );
-    /*
-    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
-    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
-    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
-    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
-    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
-    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
-    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
-    */
 
     free(subset_ptrs);
-
-
-/*
-    for (size_t i = 0; i < n; i++) {
-        printf("\nindex : %lu\n name : %c\nstart : %i\n  end : %i\n",
-               intervals[i].index, intervals[i].name,
-               intervals[i].start, intervals[i].end);
-    }
-*/
-
     free(intervals);
 
+    putchar('\n');
     return EXIT_SUCCESS;
 }
