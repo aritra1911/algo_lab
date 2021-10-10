@@ -53,6 +53,47 @@ static Interval *get_interval_by_index(size_t idx, Interval *intervals,
     return NULL;
 }
 
+void print_subset(Interval **subset_ptrs)
+{
+    printf("{ ");
+    for (Interval **p = subset_ptrs; *p; p++) {
+        printf("%c, ", (*p)->name);
+    }
+    printf("}\n");
+}
+
+Interval **get_next_subset(Interval **subset_ptrs, Interval *intervals,
+                           size_t n, int least_len)
+{
+    Interval **p = subset_ptrs;
+    Interval *q, *prev;
+
+    if ( *p == NULL ) {
+        *p = &intervals[0];
+        p++;
+    }
+
+    do {
+        prev = *p == NULL ? *(p - 1) : *p;
+
+        for ( q = prev + 1; q <= &intervals[n-1]; q++ ) {
+            if ( length(q) == least_len ) continue;
+
+            if ( q->start > (*(p - 1))->end ) {
+                break;
+            }
+        }
+
+        if ( q > &intervals[n-1] ) {
+            return subset_ptrs;
+        } else {
+            *p = q;
+            p++;
+        }
+
+    } while ( subset_ptrs[0] != NULL );
+}
+
 int main(void)
 {
     size_t n;
@@ -93,6 +134,17 @@ int main(void)
         if ( length(&intervals[i]) == least_length )
             printf("%c, ", intervals[i].name);
     } printf("}\n");
+
+    printf("Excluding the least length intervals,\n"
+           "the largest sub set of non-overlapping intervals : ");
+
+
+    Interval **subset_ptrs = calloc(n, sizeof (Interval *));
+
+    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
+
+    free(subset_ptrs);
+
 
 /*
     for (size_t i = 0; i < n; i++) {
