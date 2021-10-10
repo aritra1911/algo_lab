@@ -64,6 +64,14 @@ static void print_subset(Interval **subset_ptrs)
 static Interval **get_next_subset(Interval **subset_ptrs, Interval *intervals,
                                   size_t n, int least_len)
 {
+    /* Pulls out the next non-overlapping subset possible in the given
+     * intervals array, i.e. takes subset_ptr to its next state. If
+     * it's the last state, all subset_ptr is zeroed out.
+     *
+     * Written in one sitting while carefully maintaining array and
+     * pointer diagrams. Do not expect this to make sense right away,
+     * but at least it works, hence don't touch it.
+     */
     Interval **p = subset_ptrs;
     Interval *q, *prev;
 
