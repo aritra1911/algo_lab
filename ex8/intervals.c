@@ -71,15 +71,24 @@ Interval **get_next_subset(Interval **subset_ptrs, Interval *intervals,
     if ( *p == NULL ) {
         *p = &intervals[0];
         p++;
+    } else {
+        while ( *(p + 1) != NULL ) p++;
+        *p = NULL;
+        p--;
     }
 
-    do {
+    while ( subset_ptrs[0] != NULL ) {
         prev = *p == NULL ? *(p - 1) : *p;
 
-        for ( q = prev + 1; q <= &intervals[n-1]; q++ ) {
+        for ( q = prev + 1; q <= &intervals[n - 1]; q++ ) {
             if ( length(q) == least_len ) continue;
 
-            if ( q->start > (*(p - 1))->end ) {
+            if ( p == subset_ptrs ) {
+                *p = q;
+                p++;
+            }
+
+            if ( q->start >= (*(p - 1))->end ) {
                 break;
             }
         }
@@ -90,8 +99,8 @@ Interval **get_next_subset(Interval **subset_ptrs, Interval *intervals,
             *p = q;
             p++;
         }
-
-    } while ( subset_ptrs[0] != NULL );
+    }
+//    } while ( subset_ptrs[0] != NULL );
 }
 
 int main(void)
@@ -141,7 +150,18 @@ int main(void)
 
     Interval **subset_ptrs = calloc(n, sizeof (Interval *));
 
+    do {
+        print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
+    } while ( subset_ptrs[0] );
+    /*
     print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
+    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
+    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
+    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
+    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
+    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
+    print_subset(get_next_subset(subset_ptrs, intervals, n, least_length));
+    */
 
     free(subset_ptrs);
 
