@@ -76,7 +76,9 @@ static Interval **get_next_subset(Interval **subset_ptrs, Interval *intervals,
     Interval *q, *prev;
 
     if ( *p == NULL ) {
-        *p = &intervals[0];
+        size_t i;
+        for (i = 0; length(&intervals[i]) == least_len; i++);
+        *p = &intervals[i];
         p++;
     } else {
         while ( *(p + 1) != NULL ) p++;
