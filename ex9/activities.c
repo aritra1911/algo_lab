@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 typedef struct {
     char name;
@@ -140,14 +141,16 @@ int main(void)
     }
     */
 
-    printf("Enter name of activity of person's choice: ");
+    printf("\nEnter name of activity of person's choice: ");
     choice = getchar(); getchar();  /* eat trailing newline */
 
-    printf("Selected Activity Set(s) : ");
 
     Activity **subset_ptrs = calloc(n, sizeof (Activity *));
 
     size_t max_len = 0;
+
+    /* Calculate maximum number of activities */
+    /* TODO: Buffer the evaluation here */
     do {
         size_t len_ss;
 
@@ -157,10 +160,32 @@ int main(void)
         if ( ( len_ss == max_len || max_len == 0 ) &&
                !subset_has_activity(subset_ptrs, choice) ) {
 
+            if ( !max_len ) {
+                max_len = len_ss;
+                break;
+            }
+        }
+    } while ( subset_ptrs[0] );
+
+    printf("\nMaximum number of activities selected = %li\n", max_len);
+
+    /* Clear everything as we're gonna start over */
+    memset(subset_ptrs, 0, n * sizeof (Activity *));
+
+    /* Start over and now actually print the activities selected! */
+    /* TODO: Don't start over, use a buffer */
+    printf("\nSelected Activity Set(s) : ");
+    do {
+        size_t len_ss;
+
+        get_next_subset(subset_ptrs, activities, n);
+        len_ss = length_subset(subset_ptrs);
+
+        if ( len_ss == max_len && !subset_has_activity(subset_ptrs, choice) ) {
+
             print_subset(subset_ptrs);
             printf(", ");
 
-            if ( !max_len ) max_len = len_ss;
         }
     } while ( subset_ptrs[0] );
 
