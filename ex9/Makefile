@@ -2,7 +2,7 @@ CFLAGS = -Wall -Wextra -pedantic -g -O0 -std=c99
 
 CPPFLAGS = -D_XOPEN_SOURCE -D_POSIX_C_SOURCE=199309L
 
-SRCS = activities.c
+SRCS = huffman.c activities.c
 
 OBJS = $(SRCS:.c=.o)
 BINS = $(SRCS:.c=)
@@ -18,6 +18,9 @@ all: $(BINS)
 # ls -1 *.c | sed 's/\.c//g' | awk '{ print $1 ": " $1 ".o\n\t$(CC) $(LDFLAGS) -o $@ $^\n" }'
 
 activities: activities.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+huffman: huffman.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 clean:
