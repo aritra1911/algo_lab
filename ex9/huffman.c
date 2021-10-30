@@ -63,13 +63,36 @@ void print(Node *temp, char *code) {
     print(temp->left, leftcode);
     print(temp->right, rightcode);
 }
-void print_traversal(Node* node) {
+void print_traversal(Node *node) {
     if (node == NULL) return;
     if (node->ch != '\0') {
         printf("%c ", node->ch);
     }
     print_traversal(node->left);
     print_traversal(node->right);
+}
+char *get_code(Node *node, char ch, const char *prefix, char *code) {
+    if ( node->left == NULL && node->right == NULL ) {
+        if ( node->ch == ch ) {
+            strcpy(code, prefix);
+            return code;
+        }
+        return NULL;
+    }
+
+    int length = strlen(prefix);
+    char leftcode[10], rightcode[10];
+    strcpy(leftcode, prefix);
+    strcpy(rightcode, prefix);
+    leftcode[length] = '0';
+    leftcode[length + 1] = '\0';
+    rightcode[length] = '1';
+    rightcode[length + 1] = '\0';
+
+    char *ret;
+    if ( (ret = get_code(node->left, ch, leftcode, code)) )
+        return ret;
+    return get_code(node->right, ch, rightcode, code);
 }
 int main() {
     heap[0] = (Node *)malloc(sizeof(Node));
@@ -143,7 +166,31 @@ redo:
         print(tree, code);
         break;
     case '5':
-        printf("Huffman Code   Fixed-length Code   Delta\n");
+        printf("Char   Huffman Code   Fixed-length Code   Delta\n"
+               "----   ------------   -----------------   -----\n");
+        for (int i = 0; i < n; i++) {
+            char code[10], fix_code[10];
+            int j=i, x=n, bits=0, delta;
+
+            while ( x &= x - 1 ) bits++;
+            if ( bits ) bits = 1;
+            x = n;
+            while ( x >>= 1 ) bits++;
+
+            fix_code[bits] = '\0';
+            char *p = &fix_code[bits - 1];
+            while ( p >= fix_code ) {
+                *p = j & 1 ? '1' : '0';
+                j >>= 1;
+                p--;
+            }
+
+            if ( get_code(heap[heapSize], arr[i].ch, "\0", code) ) {
+                delta = strlen(fix_code) - strlen(code);
+                printf("%-4c   %-12s   %-17s   %d\n",
+                        arr[i].ch, code, fix_code, delta);
+            }
+        }
         break;
     case EOF:
         return EXIT_SUCCESS;
