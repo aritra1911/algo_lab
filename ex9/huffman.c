@@ -1,7 +1,17 @@
-/* Note: Not entirely written by me. I got the core functions and data
+/*
+ * Huffman coding assigns variable length codewords to fixed length
+ * input characters based on their frequencies/probabilities of
+ * occurrence. Given an array of characters along with their frequency
+ * of occurrences. Write a menu driven programming to perform the
+ * following functions.
+ */
+
+/*
+ * Note: Not entirely written by me. I got the core functions and data
  * structures already implemented by a friend. Just hacked the menu in
  * place and got it working enough to get a test case output. I don't
- * like deadlines and wasn't feeling like writing this at all. */
+ * like deadlines and wasn't feeling like writing this at all.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
