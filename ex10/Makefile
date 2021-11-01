@@ -2,7 +2,7 @@ CFLAGS = -Wall -Wextra -pedantic -g -O0 -std=c99
 
 CPPFLAGS = -D_XOPEN_SOURCE -D_POSIX_C_SOURCE=199309L
 
-SRCS = mcm.c
+SRCS = mcm.c lcs.c
 
 OBJS = $(SRCS:.c=.o)
 BINS = $(SRCS:.c=)
@@ -16,6 +16,9 @@ all: $(BINS)
 
 # a one-liner to generate the following nightmare
 # ls -1 *.c | sed 's/\.c//g' | awk '{ print $1 ": " $1 ".o\n\t$(CC) $(LDFLAGS) -o $@ $^\n" }'
+
+lcs: lcs.o
+	$(CC) $(LDFLAGS) -o $@ $^
 
 mcm: mcm.o
 	$(CC) $(LDFLAGS) -o $@ $^
