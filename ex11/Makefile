@@ -2,7 +2,7 @@ CFLAGS = -Wall -Wextra -pedantic -g -O0 -std=c99
 
 CPPFLAGS = -D_XOPEN_SOURCE -D_POSIX_C_SOURCE=199309L
 
-SRCS = bfs.c dfs.c
+SRCS = bfs.c dfs.c dijkstra.c
 
 OBJS = $(SRCS:.c=.o)
 BINS = $(SRCS:.c=)
@@ -21,6 +21,9 @@ bfs: bfs.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 dfs: dfs.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+dijkstra: dijkstra.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 clean:
