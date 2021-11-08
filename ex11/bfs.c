@@ -13,7 +13,7 @@ void bfs(int v) {
             q[++r] = i;
     }
 
-    if ( f <= r ) {
+    if ( f <= r ) { /* if q is not empty */
         visited[q[f]] = 1;
         bfs(q[f++]);
     }
