@@ -41,4 +41,5 @@ ex10/lcs
 ex11/bfs
 ex11/dfs
 ex11/dijkstra
+ex11/floyd_warshall
 
