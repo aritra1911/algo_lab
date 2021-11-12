@@ -43,4 +43,5 @@ ex11/dfs
 ex11/dijkstra
 ex11/floyd_warshall
 ex11/dfs_reachable
+ex11/bfs_connected
 
