@@ -1,3 +1,8 @@
+/*
+ * Write a program to implement All Pair Shortest Paths problem using
+ * Floyd Warshall’s Algorithm.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -13,7 +18,8 @@ static inline void printSolution(int dist[][V]);
 
 /* Solves the all-pairs shortest path
  * problem using Floyd Warshall algorithm */
-void floydWarshall(int graph[][V]) {
+void floydWarshall(int graph[][V])
+{
     /* dist[][] will be the output matrix
      * that will finally have the shortest
      * distances between every pair of vertices */
@@ -60,7 +66,8 @@ void floydWarshall(int graph[][V]) {
 }
 
 /* A utility function to print solution */
-static inline void printSolution(int dist[][V]) {
+static inline void printSolution(int dist[][V])
+{
     printf("The following matrix shows the shortest distances"
            " between every pair of vertices \n");
     for (int i = 0; i < V; i++) {
